@@ -172,11 +172,7 @@ class DWR(object):
             'batchId': '0',
             'instanceId': '0',
             'page': urllib.parse.quote_plus(self.page),
-            'scriptSessionId': '%s/%s-%s' % (
-                dwr_id,
-                self.tokenify(int(time.time() * 1000)),
-                self.tokenify(int(random.random() * 1e+16))
-            ),
+            'scriptSessionId': self.session_id(dwr_id),
         }
         return self.params_to_payload(balance_params)
 
@@ -204,11 +200,7 @@ class DWR(object):
             'batchId': '0',
             'instanceId': '0',
             'page': urllib.parse.quote_plus(self.page),
-            'scriptSessionId': '%s/%s-%s' % (
-                dwr_id,
-                self.tokenify(int(time.time() * 1000)),
-                self.tokenify(int(random.random() * 1e+16))
-            ),
+            'scriptSessionId': self.session_id(dwr_id),
         }
         return self.params_to_payload(service_params)
 
@@ -218,6 +210,13 @@ class DWR(object):
     @staticmethod
     def params_to_payload(params):
         return ''.join(["%s=%s\n" % (p_name, p_value) for p_name, p_value in params.items()])
+
+    def session_id(self, dwr_id):
+        return '%s/%s-%s' % (
+            dwr_id,
+            self.tokenify(int(time.time() * 1000)),
+            self.tokenify(int(random.random() * 1e+16))
+        )
 
     @staticmethod
     def tokenify(number):
