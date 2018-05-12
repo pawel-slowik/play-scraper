@@ -72,33 +72,27 @@ class Scraper(object):
         self.dwr_id = self.dwr.parse_init_response(response.text)
         self.session.cookies.set('DWRSESSIONID', self.dwr_id, domain='24.play.pl')
 
-    @staticmethod
-    def parse_balance_data(html_code):
-
-        def xpath_text(parent_node, xpath):
-            return parent_node.xpath(xpath)[0].text_content().strip()
-
+    def parse_balance_data(self, html_code):
         row_xpath = (
             "//div[contains(@class, 'row-fluid')]"
             "/div[contains(@class, 'row-fluid') and not(contains(@class, 'collapse'))]"
         )
         label_xpath = "./span[contains(@class, 'span4')]"
         value_xpath = "./span[contains(@class, 'span5')]"
-        return {
-            xpath_text(row_node, label_xpath):
-            xpath_text(row_node, value_xpath).splitlines()[0].strip()
-            for row_node in html.fromstring(html_code).xpath(row_xpath)
-        }
+        return self.parse_table(html_code, row_xpath, label_xpath, value_xpath)
+
+    def parse_services_data(self, html_code):
+        row_xpath = "//table[contains(@class, 'services')]/tbody/tr"
+        label_xpath = "./td/span/span/span[contains(@class, 'header')]"
+        value_xpath = "./td[contains(@class, 'status')]/span"
+        return self.parse_table(html_code, row_xpath, label_xpath, value_xpath)
 
     @staticmethod
-    def parse_services_data(html_code):
+    def parse_table(html_code, row_xpath, label_xpath, value_xpath):
 
         def xpath_text(parent_node, xpath):
             return parent_node.xpath(xpath)[0].text_content().strip()
 
-        row_xpath = "//table[contains(@class, 'services')]/tbody/tr"
-        label_xpath = "./td/span/span/span[contains(@class, 'header')]"
-        value_xpath = "./td[contains(@class, 'status')]/span"
         return {
             xpath_text(row_node, label_xpath):
             xpath_text(row_node, value_xpath).splitlines()[0].strip()
