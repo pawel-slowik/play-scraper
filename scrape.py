@@ -48,6 +48,16 @@ class Scraper(object):
         balance_html = self.dwr.parse_balance_response(response.text)
         return self.parse_balance_data(balance_html)
 
+    def list_services(self):
+        self.init_dwr()
+        response = self.session.post(
+            self.dwr.services_url,
+            self.dwr.create_services_payload(self.dwr_id)
+        )
+        response.raise_for_status()
+        services_html = self.dwr.parse_services_response(response.text)
+        return self.parse_services_data(services_html)
+
     def log_out(self):
         response = self.session.get(self.logout_url)
         response.raise_for_status()
@@ -74,6 +84,21 @@ class Scraper(object):
         )
         label_xpath = "./span[contains(@class, 'span4')]"
         value_xpath = "./span[contains(@class, 'span5')]"
+        return {
+            xpath_text(row_node, label_xpath):
+            xpath_text(row_node, value_xpath).splitlines()[0].strip()
+            for row_node in html.fromstring(html_code).xpath(row_xpath)
+        }
+
+    @staticmethod
+    def parse_services_data(html_code):
+
+        def xpath_text(parent_node, xpath):
+            return parent_node.xpath(xpath)[0].text_content().strip()
+
+        row_xpath = "//table[contains(@class, 'services')]/tbody/tr"
+        label_xpath = "./td/span/span/span[contains(@class, 'header')]"
+        value_xpath = "./td[contains(@class, 'status')]/span"
         return {
             xpath_text(row_node, label_xpath):
             xpath_text(row_node, value_xpath).splitlines()[0].strip()
@@ -113,6 +138,10 @@ class DWR(object):
         self.balance_url = urllib.parse.urljoin(
             self.base_url,
             'call/plaincall/balanceRemoteService.getBalances.dwr'
+        )
+        self.services_url = urllib.parse.urljoin(
+            self.base_url,
+            'call/plaincall/templateRemoteService.view.dwr'
         )
 
     def create_init_payload(self):
@@ -164,6 +193,28 @@ class DWR(object):
         match = re.search(regexp, response_body, re.MULTILINE)
         return json.loads(match.group(1))
 
+    def create_services_payload(self, dwr_id):
+        service_params = {
+            'callCount': '1',
+            'nextReverseAjaxIndex': '0',
+            'c0-scriptName': 'templateRemoteService',
+            'c0-methodName': 'view',
+            'c0-id': '0',
+            'c0-param0': 'string:PACKAGES',
+            'batchId': '0',
+            'instanceId': '0',
+            'page': urllib.parse.quote_plus(self.page),
+            'scriptSessionId': '%s/%s-%s' % (
+                dwr_id,
+                self.tokenify(int(time.time() * 1000)),
+                self.tokenify(int(random.random() * 1e+16))
+            ),
+        }
+        return self.params_to_payload(service_params)
+
+    def parse_services_response(self, response_body):
+        return self.parse_balance_response(response_body)
+
     @staticmethod
     def params_to_payload(params):
         return ''.join(["%s=%s\n" % (p_name, p_value) for p_name, p_value in params.items()])
@@ -187,8 +238,10 @@ def main():
     scraper = Scraper(config.get('auth', 'login'), config.get('auth', 'password'))
     scraper.log_in()
     balance_data = scraper.get_balance()
+    services_data = scraper.list_services()
     scraper.log_out()
     print(balance_data)
+    print(services_data)
 
 if __name__ == '__main__':
     main()
