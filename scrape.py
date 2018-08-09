@@ -79,26 +79,29 @@ class Scraper(object):
         )
         label_xpath = "./span[contains(@class, 'span4')]"
         value_xpath = "./span[contains(@class, 'span5')]"
-        return self.parse_table(html_code, row_xpath, label_xpath, value_xpath)
+        return self.parse_table(html_code, row_xpath, label_xpath, value_xpath, False)
 
     def parse_services_data(self, html_code):
-        row_xpath = "//table[contains(@class, 'services')]/tbody/tr"
-        label_xpath = "./td/span/span/span[contains(@class, 'header')]"
-        value_xpath = "./td[contains(@class, 'status')]/span"
-        return self.parse_table(html_code, row_xpath, label_xpath, value_xpath)
+        row_xpath = "//div[contains(@class, 'ml-8')]"
+        label_xpath = ".//p[contains(@class, 'temp_title')]"
+        value_xpath = ".//div[contains(@class, 'active-label')]"
+        return self.parse_table(html_code, row_xpath, label_xpath, value_xpath, True)
 
     @staticmethod
-    def parse_table(html_code, row_xpath, label_xpath, value_xpath):
+    def parse_table(html_code, row_xpath, label_xpath, value_xpath, allow_empty_value):
 
-        def xpath_text(parent_node, xpath):
-            return parent_node.xpath(xpath)[0].text_content().strip()
+        def xpath_text(parent_node, xpath, allow_empty):
+            nodes = parent_node.xpath(xpath)
+            if not nodes and allow_empty:
+                return ""
+            return nodes[0].text_content().strip()
 
         def first_line(string):
             return "" if string == "" else string.splitlines()[0]
 
         return {
-            xpath_text(row_node, label_xpath):
-            first_line(xpath_text(row_node, value_xpath)).strip()
+            xpath_text(row_node, label_xpath, False):
+            first_line(xpath_text(row_node, value_xpath, allow_empty_value)).strip()
             for row_node in html.fromstring(html_code).xpath(row_xpath)
         }
 
@@ -138,7 +141,7 @@ class DWR(object):
         )
         self.services_url = urllib.parse.urljoin(
             self.base_url,
-            'call/plaincall/templateRemoteService.view.dwr'
+            'call/plaincall/servicesRemoteService.getComponentsList.dwr'
         )
 
     def create_init_payload(self):
@@ -190,10 +193,10 @@ class DWR(object):
         service_params = {
             'callCount': '1',
             'nextReverseAjaxIndex': '0',
-            'c0-scriptName': 'templateRemoteService',
-            'c0-methodName': 'view',
+            'c0-scriptName': 'servicesRemoteService',
+            'c0-methodName': 'getComponentsList',
             'c0-id': '0',
-            'c0-param0': 'string:PACKAGES',
+            'c0-param0': 'string:PL24_PACKETS',
             'batchId': '0',
             'instanceId': '0',
             'page': urllib.parse.quote_plus(self.page),
