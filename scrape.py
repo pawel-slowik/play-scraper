@@ -93,9 +93,12 @@ class Scraper(object):
         def xpath_text(parent_node, xpath):
             return parent_node.xpath(xpath)[0].text_content().strip()
 
+        def first_line(string):
+            return "" if string == "" else string.splitlines()[0]
+
         return {
             xpath_text(row_node, label_xpath):
-            xpath_text(row_node, value_xpath).splitlines()[0].strip()
+            first_line(xpath_text(row_node, value_xpath)).strip()
             for row_node in html.fromstring(html_code).xpath(row_xpath)
         }
 
