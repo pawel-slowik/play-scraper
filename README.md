@@ -23,6 +23,21 @@ Run:
 
 Output will be similar to:
 
-	{'Konto': '11,22 zł', 'Data ważności połączeń wychodzących': 'DD.MM.YYYY', 'Data ważności połączeń przychodzących': 'DD.MM.YYYY', 'Liczba promocyjnych GB': '33,4 GB', 'Limit GB w roamingu UE': '5 GB'}
+	balance_PLN: 11.22
+	outgoing_expiration_date: YYYY-MM-DD
+	incoming_expiration_date: YYYY-MM-DD
+	data_sale:
+	free_data_GB: 33.4
+	cheaper_roaming_EU_data_GB: 5.0
+	voice_bundle_1000min_UA: False
+	no_data_limit_day: False
+	no_data_limit_month: True
+	no_data_limit_nights: False
+	data_bundle_5GB: False
+	no_data_limit_week: False
+	cheaper_UA: False
+	roaming: False
+	roaming_EU_data_bundle_500MB: False
 
-The script is also importable. The `get_balance` method returns a dict with parsed data.
+The script is also importable. The `get_balance` and `list_services` methods
+return dicts with parsed data.

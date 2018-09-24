@@ -301,8 +301,10 @@ def main():
     balance_data = scraper.get_balance()
     services_data = scraper.list_services()
     scraper.log_out()
-    print(balance_data)
-    print(services_data)
+    for key, value in balance_data.items():
+        print("%s: %s" % (key, value))
+    for key, value in services_data.items():
+        print("%s: %s" % (key, value))
 
 if __name__ == '__main__':
     main()
