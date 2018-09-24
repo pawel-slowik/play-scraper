@@ -7,6 +7,7 @@ import time
 import re
 import math
 import json
+import datetime
 
 import requests
 from lxml import html
@@ -73,13 +74,58 @@ class Scraper(object):
         self.session.cookies.set('DWRSESSIONID', self.dwr_id, domain='24.play.pl')
 
     def parse_balance_data(self, html_code):
+
+        def parse_balance(balance_str):
+            match = re.search("^(?P<int>[0-9]+)(,(?P<fract>[0-9]{2})){0,1} z\u0142$", balance_str)
+            if not match:
+                raise ValueError("invalid balance: %s" % balance_str)
+            return parse_float(match)
+
+        def parse_date(date_str):
+            return datetime.datetime.strptime(date_str, "%d.%m.%Y").date()
+
+        def parse_data_cap(cap_str):
+            match = re.search("^(?P<int>[0-9]+)(,(?P<fract>[0-9]+)){0,1} (?P<unit>GB|MB)$", cap_str)
+            if not match:
+                raise ValueError("invalid data cap: %s" % cap_str)
+            value = parse_float(match)
+            if match.group("unit") == "MB":
+                value /= 1000
+            return value
+
+        def parse_float(re_match):
+            value = float(re_match.group("int"))
+            if re_match.group("fract") is not None:
+                value += float("." + re_match.group("fract"))
+            return value
+
         row_xpath = (
             "//div[contains(@class, 'row-fluid')]"
             "/div[contains(@class, 'row-fluid') and not(contains(@class, 'collapse'))]"
         )
         label_xpath = "./span[contains(@class, 'span4')]"
         value_xpath = "./span[contains(@class, 'span5')]"
-        return self.parse_table(html_code, row_xpath, label_xpath, value_xpath, False)
+        parsed = self.parse_table(html_code, row_xpath, label_xpath, value_xpath, False)
+        label_map = {
+            'Konto': 'balance_PLN',
+            'Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 wychodz\u0105cych': 'outgoing_expiration_date',
+            'Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 przychodz\u0105cych': 'incoming_expiration_date',
+            'Promocyjny Internet': 'data_sale',
+            'Liczba promocyjnych GB': 'free_data_GB',
+            'Limit GB w roamingu UE': 'cheaper_roaming_EU_data_GB',
+        }
+        value_parsers = {
+            'balance_PLN': parse_balance,
+            'outgoing_expiration_date': parse_date,
+            'incoming_expiration_date': parse_date,
+            'data_sale': lambda x: x,
+            'free_data_GB': parse_data_cap,
+            'cheaper_roaming_EU_data_GB': parse_data_cap,
+        }
+        return {
+            label_map[label]: value_parsers[label_map[label]](value)
+            for label, value in parsed.items()
+        }
 
     def parse_services_data(self, html_code):
         row_xpath = "//div[contains(@class, 'ml-8')]"
