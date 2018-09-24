@@ -85,7 +85,23 @@ class Scraper(object):
         row_xpath = "//div[contains(@class, 'ml-8')]"
         label_xpath = ".//p[contains(@class, 'temp_title')]"
         value_xpath = ".//div[contains(@class, 'active-label')]"
-        return self.parse_table(html_code, row_xpath, label_xpath, value_xpath, True)
+        label_map = {
+            'Noce bez limitu': 'no_data_limit_nights',
+            'Dzie\u0144 bez limitu w Play Internet na Kart\u0119': 'no_data_limit_day',
+            'Tydzie\u0144 bez limitu GB': 'no_data_limit_week',
+            'Miesi\u0105c bez limitu GB': 'no_data_limit_month',
+            'Pakiet 5 GB': 'data_bundle_5GB',
+            'Ta\u0144sze po\u0142\u0105czenia i smsy na Ukrain\u0119': 'cheaper_UA',
+            '1000 minut na Ukrain\u0119': 'voice_bundle_1000min_UA',
+            'Roaming zagraniczny': 'roaming',
+            'Paczka roaming internet UE 500 MB': 'roaming_EU_data_bundle_500MB',
+        }
+        value_map = {
+            '': False,
+            'W\u0142\u0105czony': True,
+        }
+        parsed = self.parse_table(html_code, row_xpath, label_xpath, value_xpath, True)
+        return {label_map[label]: value_map[value] for label, value in parsed.items()}
 
     @staticmethod
     def parse_table(html_code, row_xpath, label_xpath, value_xpath, allow_empty_value):
