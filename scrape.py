@@ -12,7 +12,7 @@ import datetime
 import requests
 from lxml import html
 
-class Scraper(object):
+class Scraper():
 
     def __init__(self, login, password):
         self.login = login
@@ -188,7 +188,7 @@ class Scraper(object):
             if form_has_input(form, 'IDToken1') and form_has_input(form, 'IDToken2'):
                 return form
 
-class DWR(object):
+class DWR():
 
     def __init__(self, base_url, page):
         self.base_url = base_url
