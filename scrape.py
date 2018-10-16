@@ -76,7 +76,7 @@ class Scraper():
     def parse_balance_data(self, html_code):
 
         def parse_balance(balance_str):
-            match = re.search("^(?P<int>[0-9]+)(,(?P<fract>[0-9]{2})){0,1} z\u0142$", balance_str)
+            match = re.search("^(?P<int>[0-9]+)(,(?P<fract>[0-9]{2})){0,1} z\u0142", balance_str)
             if not match:
                 raise ValueError("invalid balance: %s" % balance_str)
             return parse_float(match)
@@ -85,7 +85,7 @@ class Scraper():
             return datetime.datetime.strptime(date_str, "%d.%m.%Y").date()
 
         def parse_data_cap(cap_str):
-            match = re.search("^(?P<int>[0-9]+)(,(?P<fract>[0-9]+)){0,1} (?P<unit>GB|MB)$", cap_str)
+            match = re.search("^(?P<int>[0-9]+)(,(?P<fract>[0-9]+)){0,1} (?P<unit>GB|MB)", cap_str)
             if not match:
                 raise ValueError("invalid data cap: %s" % cap_str)
             value = parse_float(match)
