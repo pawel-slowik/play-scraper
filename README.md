@@ -31,7 +31,9 @@ Output will be similar to:
 	cheaper_roaming_EU_data_GB: 5.0
 	voice_bundle_1000min_UA: False
 	no_data_limit_day: False
+	no_data_limit_month_recurring: False
 	no_data_limit_month: True
+	no_data_limit_nights_recurring: False
 	no_data_limit_nights: False
 	data_bundle_5GB: False
 	no_data_limit_week: False

@@ -131,22 +131,25 @@ class Scraper():
         row_xpath = "//div[contains(@class, 'ml-8')]"
         label_xpath = ".//p[contains(@class, 'temp_title')]"
         value_xpath = ".//div[contains(@class, 'active-label')]"
+        flag_xpath = ".//div[contains(@class, 'tile-actions')]/div[contains(., 'miesi\u0119cznie')]"
         label_map = {
-            'Noce bez limitu': 'no_data_limit_nights',
-            'Dzie\u0144 bez limitu w Play Internet na Kart\u0119': 'no_data_limit_day',
-            'Tydzie\u0144 bez limitu GB': 'no_data_limit_week',
-            'Miesi\u0105c bez limitu GB': 'no_data_limit_month',
-            'Pakiet 5 GB': 'data_bundle_5GB',
-            'Ta\u0144sze po\u0142\u0105czenia i smsy na Ukrain\u0119': 'cheaper_UA',
-            '1000 minut na Ukrain\u0119': 'voice_bundle_1000min_UA',
-            'Roaming zagraniczny': 'roaming',
-            'Paczka roaming internet UE 500 MB': 'roaming_EU_data_bundle_500MB',
+            ('Noce bez limitu', False): 'no_data_limit_nights',
+            ('Noce bez limitu', True): 'no_data_limit_nights_recurring',
+            ('Dzie\u0144 bez limitu w Play Internet na Kart\u0119', False): 'no_data_limit_day',
+            ('Tydzie\u0144 bez limitu GB', False): 'no_data_limit_week',
+            ('Miesi\u0105c bez limitu GB', False): 'no_data_limit_month',
+            ('Miesi\u0105c bez limitu GB', True): 'no_data_limit_month_recurring',
+            ('Pakiet 5 GB', False): 'data_bundle_5GB',
+            ('Ta\u0144sze po\u0142\u0105czenia i smsy na Ukrain\u0119', True): 'cheaper_UA',
+            ('1000 minut na Ukrain\u0119', False): 'voice_bundle_1000min_UA',
+            ('Roaming zagraniczny', False): 'roaming',
+            ('Paczka roaming internet UE 500 MB', False): 'roaming_EU_data_bundle_500MB',
         }
         value_map = {
             '': False,
             'W\u0142\u0105czony': True,
         }
-        parsed = self.parse_table(html_code, row_xpath, label_xpath, value_xpath, True)
+        parsed = self.parse_flagged_table(html_code, row_xpath, label_xpath, value_xpath, flag_xpath)
         return {label_map[label]: value_map[value] for label, value in parsed.items()}
 
     @staticmethod
@@ -164,6 +167,24 @@ class Scraper():
         return {
             xpath_text(row_node, label_xpath, False):
             first_line(xpath_text(row_node, value_xpath, allow_empty_value)).strip()
+            for row_node in html.fromstring(html_code).xpath(row_xpath)
+        }
+
+    @staticmethod
+    def parse_flagged_table(html_code, row_xpath, label_xpath, value_xpath, flag_xpath):
+
+        def xpath_text(parent_node, xpath, allow_empty):
+            nodes = parent_node.xpath(xpath)
+            if not nodes and allow_empty:
+                return ""
+            return nodes[0].text_content().strip()
+
+        def first_line(string):
+            return "" if string == "" else string.splitlines()[0]
+
+        return {
+            (xpath_text(row_node, label_xpath, True), bool(row_node.xpath(flag_xpath))):
+            first_line(xpath_text(row_node, value_xpath, True)).strip()
             for row_node in html.fromstring(html_code).xpath(row_xpath)
         }
 
