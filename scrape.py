@@ -155,15 +155,6 @@ class Scraper():
     @staticmethod
     def parse_table(html_code, row_xpath, label_xpath, value_xpath, allow_empty_value):
 
-        def xpath_text(parent_node, xpath, allow_empty):
-            nodes = parent_node.xpath(xpath)
-            if not nodes and allow_empty:
-                return ""
-            return nodes[0].text_content().strip()
-
-        def first_line(string):
-            return "" if string == "" else string.splitlines()[0]
-
         return {
             xpath_text(row_node, label_xpath, False):
             first_line(xpath_text(row_node, value_xpath, allow_empty_value)).strip()
@@ -172,15 +163,6 @@ class Scraper():
 
     @staticmethod
     def parse_flagged_table(html_code, row_xpath, label_xpath, value_xpath, flag_xpath):
-
-        def xpath_text(parent_node, xpath, allow_empty):
-            nodes = parent_node.xpath(xpath)
-            if not nodes and allow_empty:
-                return ""
-            return nodes[0].text_content().strip()
-
-        def first_line(string):
-            return "" if string == "" else string.splitlines()[0]
 
         return {
             (xpath_text(row_node, label_xpath, True), bool(row_node.xpath(flag_xpath))):
@@ -311,6 +293,15 @@ class DWR():
             tokenbuf.append(charmap[remainder & 0x3F])
             remainder = math.floor(remainder / 64)
         return ''.join(tokenbuf)
+
+def xpath_text(parent_node, xpath, allow_empty):
+    nodes = parent_node.xpath(xpath)
+    if not nodes and allow_empty:
+        return ""
+    return nodes[0].text_content().strip()
+
+def first_line(string):
+    return "" if string == "" else string.splitlines()[0]
 
 def main():
     import configparser
