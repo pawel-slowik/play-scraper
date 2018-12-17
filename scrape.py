@@ -113,6 +113,7 @@ class Scraper():
             'Promocyjny Internet': 'data_sale',
             'Liczba promocyjnych GB': 'free_data_GB',
             'Limit GB w roamingu UE': 'cheaper_roaming_EU_data_GB',
+            'Limit wydatk\xf3w na us\u0142ugi Premium': 'premium_services_limit_PLN',
         }
         value_parsers = {
             'balance_PLN': parse_balance,
@@ -121,6 +122,7 @@ class Scraper():
             'data_sale': lambda x: x,
             'free_data_GB': parse_data_cap,
             'cheaper_roaming_EU_data_GB': parse_data_cap,
+            'premium_services_limit_PLN': parse_balance,
         }
         return {
             label_map[label]: value_parsers[label_map[label]](value)

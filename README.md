@@ -29,6 +29,7 @@ Output will be similar to:
 	data_sale:
 	free_data_GB: 33.4
 	cheaper_roaming_EU_data_GB: 5.0
+	premium_services_limit_PLN: 35.0
 	voice_bundle_1000min_UA: False
 	no_data_limit_day: False
 	no_data_limit_month_recurring: False
