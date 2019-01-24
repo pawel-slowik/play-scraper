@@ -248,7 +248,10 @@ class DWR():
     @staticmethod
     def parse_init_response(response_body: str) -> str:
         regexp = r'dwr\.engine\.remote\.handleCallback\("[0-9]+","[0-9]+","([^"]+)"\);'
-        return re.search(regexp, response_body).group(1)
+        match = re.search(regexp, response_body)
+        if not match:
+            raise ValueError("unparseable init response: %s" % response_body)
+        return match.group(1)
 
     def create_balance_payload(self, dwr_id: str) -> str:
         balance_params = {
@@ -275,6 +278,8 @@ class DWR():
         end_marker = re.escape('}));')
         regexp = r'^%s(.+)%s\s*$' % (begin_marker, end_marker)
         match = re.search(regexp, response_body, re.MULTILINE)
+        if not match:
+            raise ValueError("unparseable response: %s" % response_body)
         return json.loads(match.group(1))
 
     def create_services_payload(self, dwr_id: str) -> str:
