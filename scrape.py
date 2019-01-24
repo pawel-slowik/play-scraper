@@ -8,22 +8,25 @@ import re
 import math
 import json
 import datetime
+from typing import Dict, Tuple, Union, Match
 
 import requests
 from lxml import html
 
+BalanceValue = Union[str, float, bool, datetime.date]
+
 class Scraper():
 
-    def __init__(self, login, password):
+    def __init__(self, login: str, password: str) -> None:
         self.login = login
         self.password = password
         self.start_url = 'https://24.play.pl/'
         self.logout_url = 'https://konto.play.pl/opensso/UI/Logout'
         self.session = requests.Session()
-        self.dwr = None
-        self.dwr_id = None
+        self.dwr: DWR = None
+        self.dwr_id: str = None
 
-    def log_in(self):
+    def log_in(self) -> None:
         # follow a bunch of redirects, picking up cookies along the way,
         # until we land at the login screen
         response = self.session.get(self.start_url)
@@ -39,7 +42,7 @@ class Scraper():
         response.raise_for_status()
         self.follow_js_form_redirection(response)
 
-    def get_balance(self):
+    def get_balance(self) -> Dict[str, BalanceValue]:
         self.init_dwr()
         response = self.session.post(
             self.dwr.balance_url,
@@ -49,7 +52,7 @@ class Scraper():
         balance_html = self.dwr.parse_balance_response(response.text)
         return self.parse_balance_data(balance_html)
 
-    def list_services(self):
+    def list_services(self) -> Dict[str, bool]:
         self.init_dwr()
         response = self.session.post(
             self.dwr.services_url,
@@ -59,11 +62,11 @@ class Scraper():
         services_html = self.dwr.parse_services_response(response.text)
         return self.parse_services_data(services_html)
 
-    def log_out(self):
+    def log_out(self) -> None:
         response = self.session.get(self.logout_url)
         response.raise_for_status()
 
-    def init_dwr(self):
+    def init_dwr(self) -> None:
         if self.dwr is not None:
             return
         # emulate the AJAX end of a Java DWR bridge
@@ -73,18 +76,18 @@ class Scraper():
         self.dwr_id = self.dwr.parse_init_response(response.text)
         self.session.cookies.set('DWRSESSIONID', self.dwr_id, domain='24.play.pl')
 
-    def parse_balance_data(self, html_code):
+    def parse_balance_data(self, html_code: str) -> Dict[str, BalanceValue]:
 
-        def parse_balance(balance_str):
+        def parse_balance(balance_str: str) -> float:
             match = re.search("^(?P<int>[0-9]+)(,(?P<fract>[0-9]{2})){0,1} z\u0142", balance_str)
             if not match:
                 raise ValueError("invalid balance: %s" % balance_str)
             return parse_float(match)
 
-        def parse_date(date_str):
+        def parse_date(date_str: str) -> datetime.date:
             return datetime.datetime.strptime(date_str, "%d.%m.%Y").date()
 
-        def parse_data_cap(cap_str):
+        def parse_data_cap(cap_str: str) -> float:
             match = re.search("^(?P<int>[0-9]+)(,(?P<fract>[0-9]+)){0,1} (?P<unit>GB|MB)", cap_str)
             if not match:
                 raise ValueError("invalid data cap: %s" % cap_str)
@@ -93,7 +96,7 @@ class Scraper():
                 value /= 1000
             return value
 
-        def parse_float(re_match):
+        def parse_float(re_match: Match) -> float:
             value = float(re_match.group("int"))
             if re_match.group("fract") is not None:
                 value += float("." + re_match.group("fract"))
@@ -129,7 +132,7 @@ class Scraper():
             for label, value in parsed.items()
         }
 
-    def parse_services_data(self, html_code):
+    def parse_services_data(self, html_code: str) -> Dict[str, bool]:
         row_xpath = "//div[contains(@class, 'ml-8')]"
         label_xpath = ".//p[contains(@class, 'temp_title')]"
         value_xpath = ".//div[contains(@class, 'active-label')]"
@@ -155,7 +158,7 @@ class Scraper():
         return {label_map[label]: value_map[value] for label, value in parsed.items()}
 
     @staticmethod
-    def parse_table(html_code, row_xpath, label_xpath, value_xpath, allow_empty_value):
+    def parse_table(html_code: str, row_xpath: str, label_xpath: str, value_xpath: str, allow_empty_value: bool) -> Dict[str, str]:
 
         return {
             xpath_text(row_node, label_xpath, False):
@@ -164,7 +167,7 @@ class Scraper():
         }
 
     @staticmethod
-    def parse_flagged_table(html_code, row_xpath, label_xpath, value_xpath, flag_xpath):
+    def parse_flagged_table(html_code: str, row_xpath: str, label_xpath: str, value_xpath: str, flag_xpath: str) -> Dict[Tuple[str, bool], str]:
 
         return {
             (xpath_text(row_node, label_xpath, True), bool(row_node.xpath(flag_xpath))):
@@ -172,7 +175,7 @@ class Scraper():
             for row_node in html.fromstring(html_code).xpath(row_xpath)
         }
 
-    def follow_js_form_redirection(self, response):
+    def follow_js_form_redirection(self, response: requests.Response) -> requests.Response:
         form = html.fromstring(response.content).xpath("//form[1]")[0]
         post_data = self.form_inputs_to_post_data(form)
         response = self.session.post(form.action, data=post_data)
@@ -180,13 +183,13 @@ class Scraper():
         return response
 
     @staticmethod
-    def form_inputs_to_post_data(form):
+    def form_inputs_to_post_data(form: html.HtmlElement) -> Dict[str, str]:
         return {i.name: i.value for i in form.xpath(".//input")}
 
     @staticmethod
-    def find_login_form(page_html):
+    def find_login_form(page_html: bytes) -> html.HtmlElement:
 
-        def form_has_input(form, input_name):
+        def form_has_input(form: html.HtmlElement, input_name: str) -> bool:
             return bool(form.xpath(".//input[@name='%s']" % (input_name,)))
 
         for form in html.fromstring(page_html).xpath("//form"):
@@ -195,7 +198,7 @@ class Scraper():
 
 class DWR():
 
-    def __init__(self, base_url, page):
+    def __init__(self, base_url: str, page: str) -> None:
         self.base_url = base_url
         self.page = page
         self.init_url = urllib.parse.urljoin(
@@ -211,7 +214,7 @@ class DWR():
             'call/plaincall/servicesRemoteService.getComponentsList.dwr'
         )
 
-    def create_init_payload(self):
+    def create_init_payload(self) -> str:
         dwr_init_params = {
             'callCount': '1',
             'c0-scriptName': '__System',
@@ -225,11 +228,11 @@ class DWR():
         return self.params_to_payload(dwr_init_params)
 
     @staticmethod
-    def parse_init_response(response_body):
+    def parse_init_response(response_body: str) -> str:
         regexp = r'dwr\.engine\.remote\.handleCallback\("[0-9]+","[0-9]+","([^"]+)"\);'
         return re.search(regexp, response_body).group(1)
 
-    def create_balance_payload(self, dwr_id):
+    def create_balance_payload(self, dwr_id: str) -> str:
         balance_params = {
             'callCount': '1',
             'nextReverseAjaxIndex': '0',
@@ -244,7 +247,7 @@ class DWR():
         return self.params_to_payload(balance_params)
 
     @staticmethod
-    def parse_balance_response(response_body):
+    def parse_balance_response(response_body: str) -> str:
         begin_marker = re.escape(
             'dwr.engine.remote.handleCallback("0","0",'
             'dwr.engine.remote.newObject("BaseDwrTransferData",'
@@ -256,7 +259,7 @@ class DWR():
         match = re.search(regexp, response_body, re.MULTILINE)
         return json.loads(match.group(1))
 
-    def create_services_payload(self, dwr_id):
+    def create_services_payload(self, dwr_id: str) -> str:
         service_params = {
             'callCount': '1',
             'nextReverseAjaxIndex': '0',
@@ -271,14 +274,14 @@ class DWR():
         }
         return self.params_to_payload(service_params)
 
-    def parse_services_response(self, response_body):
+    def parse_services_response(self, response_body: str) -> str:
         return self.parse_balance_response(response_body)
 
     @staticmethod
-    def params_to_payload(params):
+    def params_to_payload(params: Dict[str, str]) -> str:
         return ''.join(["%s=%s\n" % (p_name, p_value) for p_name, p_value in params.items()])
 
-    def session_id(self, dwr_id):
+    def session_id(self, dwr_id: str) -> str:
         return '%s/%s-%s' % (
             dwr_id,
             self.tokenify(int(time.time() * 1000)),
@@ -286,7 +289,7 @@ class DWR():
         )
 
     @staticmethod
-    def tokenify(number):
+    def tokenify(number: int) -> str:
         # emulate the JavaScript `dwr.engine.util.tokenify` function
         tokenbuf = []
         charmap = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ*$"
@@ -296,16 +299,16 @@ class DWR():
             remainder = math.floor(remainder / 64)
         return ''.join(tokenbuf)
 
-def xpath_text(parent_node, xpath, allow_empty):
+def xpath_text(parent_node: html.HtmlElement, xpath: str, allow_empty: bool) -> str:
     nodes = parent_node.xpath(xpath)
     if not nodes and allow_empty:
         return ""
     return nodes[0].text_content().strip()
 
-def first_line(string):
+def first_line(string: str) -> str:
     return "" if string == "" else string.splitlines()[0]
 
-def main():
+def main() -> None:
     import configparser
     config_dir = os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
     config = configparser.SafeConfigParser()
