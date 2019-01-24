@@ -111,8 +111,10 @@ class Scraper():
         parsed = self.parse_table(html_code, row_xpath, label_xpath, value_xpath, False)
         label_map = {
             'Konto': 'balance_PLN',
-            'Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 wychodz\u0105cych': 'outgoing_expiration_date',
-            'Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 przychodz\u0105cych': 'incoming_expiration_date',
+            'Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 wychodz\u0105cych':
+                'outgoing_expiration_date',
+            'Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 przychodz\u0105cych':
+                'incoming_expiration_date',
             'Promocyjny Internet': 'data_sale',
             'Liczba promocyjnych GB': 'free_data_GB',
             'Limit GB w roamingu UE': 'cheaper_roaming_EU_data_GB',
@@ -154,12 +156,23 @@ class Scraper():
             '': False,
             'W\u0142\u0105czony': True,
         }
-        parsed = self.parse_flagged_table(html_code, row_xpath, label_xpath, value_xpath, flag_xpath)
+        parsed = self.parse_flagged_table(
+            html_code,
+            row_xpath,
+            label_xpath,
+            value_xpath,
+            flag_xpath
+        )
         return {label_map[label]: value_map[value] for label, value in parsed.items()}
 
     @staticmethod
-    def parse_table(html_code: str, row_xpath: str, label_xpath: str, value_xpath: str, allow_empty_value: bool) -> Dict[str, str]:
-
+    def parse_table(
+            html_code: str,
+            row_xpath: str,
+            label_xpath: str,
+            value_xpath: str,
+            allow_empty_value: bool
+    ) -> Dict[str, str]:
         return {
             xpath_text(row_node, label_xpath, False):
             first_line(xpath_text(row_node, value_xpath, allow_empty_value)).strip()
@@ -167,8 +180,13 @@ class Scraper():
         }
 
     @staticmethod
-    def parse_flagged_table(html_code: str, row_xpath: str, label_xpath: str, value_xpath: str, flag_xpath: str) -> Dict[Tuple[str, bool], str]:
-
+    def parse_flagged_table(
+            html_code: str,
+            row_xpath: str,
+            label_xpath: str,
+            value_xpath: str,
+            flag_xpath: str
+    ) -> Dict[Tuple[str, bool], str]:
         return {
             (xpath_text(row_node, label_xpath, True), bool(row_node.xpath(flag_xpath))):
             first_line(xpath_text(row_node, value_xpath, True)).strip()
