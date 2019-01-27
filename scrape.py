@@ -8,7 +8,7 @@ import re
 import math
 import json
 import datetime
-from typing import Dict, Tuple, Union, Match
+from typing import Dict, Tuple, Union, Optional, Match
 
 import requests
 from lxml import html
@@ -23,8 +23,7 @@ class Scraper():
         self.start_url = 'https://24.play.pl/'
         self.logout_url = 'https://konto.play.pl/opensso/UI/Logout'
         self.session = requests.Session()
-        self.dwr: DWR = None
-        self.dwr_id: str = None
+        self.dwr_id: Optional[str] = None
 
     def log_in(self) -> None:
         # follow a bunch of redirects, picking up cookies along the way,
@@ -43,38 +42,38 @@ class Scraper():
         self.follow_js_form_redirection(response)
 
     def get_balance(self) -> Dict[str, BalanceValue]:
-        self.init_dwr()
+        dwr_method = DWRBalance('https://24.play.pl/Play24/dwr/', '/Play24/Welcome')
         response = self.session.post(
-            self.dwr.balance_url,
-            self.dwr.create_balance_payload(self.dwr_id)
+            dwr_method.url,
+            dwr_method.create_payload(self.init_dwr())
         )
         response.raise_for_status()
-        balance_html = self.dwr.parse_balance_response(response.text)
+        balance_html = dwr_method.parse_response(response.text)
         return self.parse_balance_data(balance_html)
 
     def list_services(self) -> Dict[str, bool]:
-        self.init_dwr()
+        dwr_method = DWRServices('https://24.play.pl/Play24/dwr/', '/Play24/Welcome')
         response = self.session.post(
-            self.dwr.services_url,
-            self.dwr.create_services_payload(self.dwr_id)
+            dwr_method.url,
+            dwr_method.create_payload(self.init_dwr())
         )
         response.raise_for_status()
-        services_html = self.dwr.parse_services_response(response.text)
+        services_html = dwr_method.parse_response(response.text)
         return self.parse_services_data(services_html)
 
     def log_out(self) -> None:
         response = self.session.get(self.logout_url)
         response.raise_for_status()
 
-    def init_dwr(self) -> None:
-        if self.dwr is not None:
-            return
-        # emulate the AJAX end of a Java DWR bridge
-        self.dwr = DWR('https://24.play.pl/Play24/dwr/', '/Play24/Welcome')
-        response = self.session.post(self.dwr.init_url, self.dwr.create_init_payload())
+    def init_dwr(self) -> str:
+        if self.dwr_id is not None:
+            return self.dwr_id
+        dwr_method = DWRInit('https://24.play.pl/Play24/dwr/', '/Play24/Welcome')
+        response = self.session.post(dwr_method.url, dwr_method.create_payload())
         response.raise_for_status()
-        self.dwr_id = self.dwr.parse_init_response(response.text)
+        self.dwr_id = dwr_method.parse_response(response.text)
         self.session.cookies.set('DWRSESSIONID', self.dwr_id, domain='24.play.pl')
+        return self.dwr_id
 
     def parse_balance_data(self, html_code: str) -> Dict[str, BalanceValue]:
 
@@ -214,91 +213,14 @@ class Scraper():
             if form_has_input(form, 'IDToken1') and form_has_input(form, 'IDToken2'):
                 return form
 
-class DWR():
+class DWRMethod:
+
+    method_url = ""
 
     def __init__(self, base_url: str, page: str) -> None:
         self.base_url = base_url
         self.page = page
-        self.init_url = urllib.parse.urljoin(
-            self.base_url,
-            'call/plaincall/__System.generateId.dwr'
-        )
-        self.balance_url = urllib.parse.urljoin(
-            self.base_url,
-            'call/plaincall/balanceRemoteService.getBalances.dwr'
-        )
-        self.services_url = urllib.parse.urljoin(
-            self.base_url,
-            'call/plaincall/servicesRemoteService.getComponentsList.dwr'
-        )
-
-    def create_init_payload(self) -> str:
-        dwr_init_params = {
-            'callCount': '1',
-            'c0-scriptName': '__System',
-            'c0-methodName': 'generateId',
-            'c0-id': '0',
-            'batchId': '0',
-            'instanceId': '0',
-            'page': urllib.parse.quote_plus(self.page),
-            'scriptSessionId': '',
-        }
-        return self.params_to_payload(dwr_init_params)
-
-    @staticmethod
-    def parse_init_response(response_body: str) -> str:
-        regexp = r'dwr\.engine\.remote\.handleCallback\("[0-9]+","[0-9]+","([^"]+)"\);'
-        match = re.search(regexp, response_body)
-        if not match:
-            raise ValueError("unparseable init response: %s" % response_body)
-        return match.group(1)
-
-    def create_balance_payload(self, dwr_id: str) -> str:
-        balance_params = {
-            'callCount': '1',
-            'nextReverseAjaxIndex': '0',
-            'c0-scriptName': 'balanceRemoteService',
-            'c0-methodName': 'getBalances',
-            'c0-id': '0',
-            'batchId': '0',
-            'instanceId': '0',
-            'page': urllib.parse.quote_plus(self.page),
-            'scriptSessionId': self.session_id(dwr_id),
-        }
-        return self.params_to_payload(balance_params)
-
-    @staticmethod
-    def parse_balance_response(response_body: str) -> str:
-        begin_marker = re.escape(
-            'dwr.engine.remote.handleCallback("0","0",'
-            'dwr.engine.remote.newObject("BaseDwrTransferData",'
-            '{responseStatus:dwr.engine.remote.newObject("ServiceDwrResponse",'
-            '{messages:{},nextStep:null,status:"1"}),tableData:null,view:'
-        )
-        end_marker = re.escape('}));')
-        regexp = r'^%s(.+)%s\s*$' % (begin_marker, end_marker)
-        match = re.search(regexp, response_body, re.MULTILINE)
-        if not match:
-            raise ValueError("unparseable response: %s" % response_body)
-        return json.loads(match.group(1))
-
-    def create_services_payload(self, dwr_id: str) -> str:
-        service_params = {
-            'callCount': '1',
-            'nextReverseAjaxIndex': '0',
-            'c0-scriptName': 'servicesRemoteService',
-            'c0-methodName': 'getComponentsList',
-            'c0-id': '0',
-            'c0-param0': 'string:PL24_PACKETS',
-            'batchId': '0',
-            'instanceId': '0',
-            'page': urllib.parse.quote_plus(self.page),
-            'scriptSessionId': self.session_id(dwr_id),
-        }
-        return self.params_to_payload(service_params)
-
-    def parse_services_response(self, response_body: str) -> str:
-        return self.parse_balance_response(response_body)
+        self.url = urllib.parse.urljoin(self.base_url, self.method_url)
 
     @staticmethod
     def params_to_payload(params: Dict[str, str]) -> str:
@@ -321,6 +243,87 @@ class DWR():
             tokenbuf.append(charmap[remainder & 0x3F])
             remainder = math.floor(remainder / 64)
         return ''.join(tokenbuf)
+
+class DWRInit(DWRMethod):
+
+    method_url = 'call/plaincall/__System.generateId.dwr'
+
+    def create_payload(self) -> str:
+        dwr_init_params = {
+            'callCount': '1',
+            'c0-scriptName': '__System',
+            'c0-methodName': 'generateId',
+            'c0-id': '0',
+            'batchId': '0',
+            'instanceId': '0',
+            'page': urllib.parse.quote_plus(self.page),
+            'scriptSessionId': '',
+        }
+        return self.params_to_payload(dwr_init_params)
+
+    @staticmethod
+    def parse_response(response_body: str) -> str:
+        regexp = r'dwr\.engine\.remote\.handleCallback\("[0-9]+","[0-9]+","([^"]+)"\);'
+        match = re.search(regexp, response_body)
+        if not match:
+            raise ValueError("unparseable init response: %s" % response_body)
+        return match.group(1)
+
+class DWRBalance(DWRMethod):
+
+    method_url = 'call/plaincall/balanceRemoteService.getBalances.dwr'
+
+    def create_payload(self, dwr_id: str) -> str:
+        balance_params = {
+            'callCount': '1',
+            'nextReverseAjaxIndex': '0',
+            'c0-scriptName': 'balanceRemoteService',
+            'c0-methodName': 'getBalances',
+            'c0-id': '0',
+            'batchId': '0',
+            'instanceId': '0',
+            'page': urllib.parse.quote_plus(self.page),
+            'scriptSessionId': self.session_id(dwr_id),
+        }
+        return self.params_to_payload(balance_params)
+
+    @staticmethod
+    def parse_response(response_body: str) -> str:
+        begin_marker = re.escape(
+            'dwr.engine.remote.handleCallback("0","0",'
+            'dwr.engine.remote.newObject("BaseDwrTransferData",'
+            '{responseStatus:dwr.engine.remote.newObject("ServiceDwrResponse",'
+            '{messages:{},nextStep:null,status:"1"}),tableData:null,view:'
+        )
+        end_marker = re.escape('}));')
+        regexp = r'^%s(.+)%s\s*$' % (begin_marker, end_marker)
+        match = re.search(regexp, response_body, re.MULTILINE)
+        if not match:
+            raise ValueError("unparseable response: %s" % response_body)
+        return json.loads(match.group(1))
+
+class DWRServices(DWRMethod):
+
+    method_url = 'call/plaincall/servicesRemoteService.getComponentsList.dwr'
+
+    def create_payload(self, dwr_id: str) -> str:
+        service_params = {
+            'callCount': '1',
+            'nextReverseAjaxIndex': '0',
+            'c0-scriptName': 'servicesRemoteService',
+            'c0-methodName': 'getComponentsList',
+            'c0-id': '0',
+            'c0-param0': 'string:PL24_PACKETS',
+            'batchId': '0',
+            'instanceId': '0',
+            'page': urllib.parse.quote_plus(self.page),
+            'scriptSessionId': self.session_id(dwr_id),
+        }
+        return self.params_to_payload(service_params)
+
+    @staticmethod
+    def parse_response(response_body: str) -> str:
+        return DWRBalance.parse_response(response_body)
 
 def xpath_text(parent_node: html.HtmlElement, xpath: str, allow_empty: bool) -> str:
     nodes = parent_node.xpath(xpath)
