@@ -19,6 +19,8 @@ class Scraper():
 
     start_url = 'https://24.play.pl/'
     logout_url = 'https://konto.play.pl/opensso/UI/Logout'
+    dwr_base_url = 'https://24.play.pl/Play24/dwr/'
+    dwr_page = '/Play24/Welcome'
 
     def __init__(self, login: str, password: str) -> None:
         self.login = login
@@ -43,7 +45,7 @@ class Scraper():
         self.follow_js_form_redirection(response)
 
     def get_balance(self) -> Dict[str, BalanceValue]:
-        dwr_method = DWRBalance('https://24.play.pl/Play24/dwr/', '/Play24/Welcome')
+        dwr_method = DWRBalance(self.dwr_base_url, self.dwr_page)
         response = self.session.post(
             dwr_method.url,
             dwr_method.create_payload(self.init_dwr())
@@ -53,7 +55,7 @@ class Scraper():
         return self.parse_balance_data(balance_html)
 
     def list_services(self) -> Dict[str, bool]:
-        dwr_method = DWRServices('https://24.play.pl/Play24/dwr/', '/Play24/Welcome')
+        dwr_method = DWRServices(self.dwr_base_url, self.dwr_page)
         response = self.session.post(
             dwr_method.url,
             dwr_method.create_payload(self.init_dwr())
@@ -69,7 +71,7 @@ class Scraper():
     def init_dwr(self) -> str:
         if self.dwr_id is not None:
             return self.dwr_id
-        dwr_method = DWRInit('https://24.play.pl/Play24/dwr/', '/Play24/Welcome')
+        dwr_method = DWRInit(self.dwr_base_url, self.dwr_page)
         response = self.session.post(dwr_method.url, dwr_method.create_payload())
         response.raise_for_status()
         self.dwr_id = dwr_method.parse_response(response.text)
