@@ -17,11 +17,12 @@ BalanceValue = Union[str, float, bool, datetime.date]
 
 class Scraper():
 
+    start_url = 'https://24.play.pl/'
+    logout_url = 'https://konto.play.pl/opensso/UI/Logout'
+
     def __init__(self, login: str, password: str) -> None:
         self.login = login
         self.password = password
-        self.start_url = 'https://24.play.pl/'
-        self.logout_url = 'https://konto.play.pl/opensso/UI/Logout'
         self.session = requests.Session()
         self.dwr_id: Optional[str] = None
 
