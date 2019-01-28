@@ -8,6 +8,7 @@ import re
 import math
 import json
 import datetime
+from abc import ABC, abstractmethod
 from typing import Dict, Tuple, Union, Optional, Match
 
 import requests
@@ -46,22 +47,12 @@ class Scraper():
 
     def get_balance(self) -> Dict[str, BalanceValue]:
         dwr_method = DWRBalance(self.dwr_base_url, self.dwr_page)
-        response = self.session.post(
-            dwr_method.url,
-            dwr_method.create_payload(self.init_dwr())
-        )
-        response.raise_for_status()
-        balance_html = dwr_method.parse_response(response.text)
+        balance_html = self.call_drw_method(dwr_method, **{"dwr_id": self.init_dwr()})
         return self.parse_balance_data(balance_html)
 
     def list_services(self) -> Dict[str, bool]:
         dwr_method = DWRServices(self.dwr_base_url, self.dwr_page)
-        response = self.session.post(
-            dwr_method.url,
-            dwr_method.create_payload(self.init_dwr())
-        )
-        response.raise_for_status()
-        services_html = dwr_method.parse_response(response.text)
+        services_html = self.call_drw_method(dwr_method, **{"dwr_id": self.init_dwr()})
         return self.parse_services_data(services_html)
 
     def log_out(self) -> None:
@@ -72,11 +63,14 @@ class Scraper():
         if self.dwr_id is not None:
             return self.dwr_id
         dwr_method = DWRInit(self.dwr_base_url, self.dwr_page)
-        response = self.session.post(dwr_method.url, dwr_method.create_payload())
-        response.raise_for_status()
-        self.dwr_id = dwr_method.parse_response(response.text)
+        self.dwr_id = self.call_drw_method(dwr_method)
         self.session.cookies.set('DWRSESSIONID', self.dwr_id, domain='24.play.pl')
         return self.dwr_id
+
+    def call_drw_method(self, dwr_method: 'DWRMethod', **kwargs: str) -> str:
+        response = self.session.post(dwr_method.url, dwr_method.create_payload(**kwargs))
+        response.raise_for_status()
+        return dwr_method.parse_response(response.text)
 
     def parse_balance_data(self, html_code: str) -> Dict[str, BalanceValue]:
 
@@ -216,7 +210,7 @@ class Scraper():
             if form_has_input(form, 'IDToken1') and form_has_input(form, 'IDToken2'):
                 return form
 
-class DWRMethod:
+class DWRMethod(ABC):
 
     method_url = ""
 
@@ -247,11 +241,20 @@ class DWRMethod:
             remainder = math.floor(remainder / 64)
         return ''.join(tokenbuf)
 
+    @abstractmethod
+    def create_payload(self, **kwargs: str) -> str:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def parse_response(response_body: str) -> str:
+        pass
+
 class DWRInit(DWRMethod):
 
     method_url = 'call/plaincall/__System.generateId.dwr'
 
-    def create_payload(self) -> str:
+    def create_payload(self, **_: str) -> str:
         dwr_init_params = {
             'callCount': '1',
             'c0-scriptName': '__System',
@@ -276,7 +279,7 @@ class DWRBalance(DWRMethod):
 
     method_url = 'call/plaincall/balanceRemoteService.getBalances.dwr'
 
-    def create_payload(self, dwr_id: str) -> str:
+    def create_payload(self, **kwargs: str) -> str:
         balance_params = {
             'callCount': '1',
             'nextReverseAjaxIndex': '0',
@@ -286,7 +289,7 @@ class DWRBalance(DWRMethod):
             'batchId': '0',
             'instanceId': '0',
             'page': urllib.parse.quote_plus(self.page),
-            'scriptSessionId': self.session_id(dwr_id),
+            'scriptSessionId': self.session_id(kwargs["dwr_id"]),
         }
         return self.params_to_payload(balance_params)
 
@@ -309,7 +312,7 @@ class DWRServices(DWRMethod):
 
     method_url = 'call/plaincall/servicesRemoteService.getComponentsList.dwr'
 
-    def create_payload(self, dwr_id: str) -> str:
+    def create_payload(self, **kwargs: str) -> str:
         service_params = {
             'callCount': '1',
             'nextReverseAjaxIndex': '0',
@@ -320,7 +323,7 @@ class DWRServices(DWRMethod):
             'batchId': '0',
             'instanceId': '0',
             'page': urllib.parse.quote_plus(self.page),
-            'scriptSessionId': self.session_id(dwr_id),
+            'scriptSessionId': self.session_id(kwargs["dwr_id"]),
         }
         return self.params_to_payload(service_params)
 
