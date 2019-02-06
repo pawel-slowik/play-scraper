@@ -68,7 +68,10 @@ class Scraper():
         return self.dwr_id
 
     def call_drw_method(self, dwr_method: 'DWRMethod', **kwargs: str) -> str:
-        response = self.session.post(dwr_method.url, dwr_method.create_payload(**kwargs))
+        response = self.session.post(
+            dwr_method.url,
+            dwr_method.create_payload(**kwargs).encode("us-ascii")
+        )
         response.raise_for_status()
         return dwr_method.parse_response(response.text)
 
