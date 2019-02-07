@@ -341,7 +341,7 @@ def xpath_text(parent_node: html.HtmlElement, xpath: str, allow_empty: bool) -> 
     nodes = parent_node.xpath(xpath)
     if not nodes and allow_empty:
         return ""
-    return nodes[0].text_content().strip()
+    return nodes[0].text_content().strip() # type: ignore
 
 def first_line(string: str) -> str:
     return "" if string == "" else string.splitlines()[0]
