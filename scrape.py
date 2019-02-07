@@ -309,7 +309,10 @@ class DWRBalance(DWRMethod):
         match = re.search(regexp, response_body, re.MULTILINE)
         if not match:
             raise ValueError("unparseable response: %s" % response_body)
-        return json.loads(match.group(1))
+        content = json.loads(match.group(1))
+        if not isinstance(content, str):
+            raise ValueError("unparseable response: %r" % content)
+        return content
 
 class DWRServices(DWRMethod):
 
