@@ -64,7 +64,7 @@ class Scraper():
             return self.dwr_id
         dwr_method = DWRInit(self.dwr_base_url, self.dwr_page)
         self.dwr_id = self.call_drw_method(dwr_method)
-        self.session.cookies.set('DWRSESSIONID', self.dwr_id, domain='24.play.pl')
+        self.session.cookies.set('DWRSESSIONID', self.dwr_id, domain='24.play.pl') # type: ignore
         return self.dwr_id
 
     def call_drw_method(self, dwr_method: 'DWRMethod', **kwargs: str) -> str:
