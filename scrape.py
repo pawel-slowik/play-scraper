@@ -9,7 +9,7 @@ import math
 import json
 import datetime
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, Union, Optional, Match
+from typing import Mapping, MutableMapping, Tuple, Union, Optional, Match
 
 import requests
 from lxml import html
@@ -45,12 +45,12 @@ class Scraper():
         response.raise_for_status()
         self.follow_js_form_redirection(response)
 
-    def get_balance(self) -> Dict[str, BalanceValue]:
+    def get_balance(self) -> MutableMapping[str, BalanceValue]:
         dwr_method = DWRBalance(self.dwr_base_url, self.dwr_page)
         balance_html = self.call_drw_method(dwr_method, **{"dwr_id": self.init_dwr()})
         return self.parse_balance_data(balance_html)
 
-    def list_services(self) -> Dict[str, bool]:
+    def list_services(self) -> MutableMapping[str, bool]:
         dwr_method = DWRServices(self.dwr_base_url, self.dwr_page)
         services_html = self.call_drw_method(dwr_method, **{"dwr_id": self.init_dwr()})
         return self.parse_services_data(services_html)
@@ -75,7 +75,7 @@ class Scraper():
         response.raise_for_status()
         return dwr_method.parse_response(response.text)
 
-    def parse_balance_data(self, html_code: str) -> Dict[str, BalanceValue]:
+    def parse_balance_data(self, html_code: str) -> MutableMapping[str, BalanceValue]:
 
         def parse_balance(balance_str: str) -> float:
             match = re.search("^(?P<int>[0-9]+)(,(?P<fract>[0-9]{2})){0,1} z\u0142", balance_str)
@@ -133,7 +133,7 @@ class Scraper():
             for label, value in parsed.items()
         }
 
-    def parse_services_data(self, html_code: str) -> Dict[str, bool]:
+    def parse_services_data(self, html_code: str) -> MutableMapping[str, bool]:
         row_xpath = "//div[contains(@class, 'ml-8')]"
         label_xpath = ".//p[contains(@class, 'temp_title')]"
         value_xpath = ".//div[contains(@class, 'active-label')]"
@@ -171,7 +171,7 @@ class Scraper():
             label_xpath: str,
             value_xpath: str,
             allow_empty_value: bool
-    ) -> Dict[str, str]:
+    ) -> MutableMapping[str, str]:
         return {
             xpath_text(row_node, label_xpath, False):
             first_line(xpath_text(row_node, value_xpath, allow_empty_value)).strip()
@@ -185,7 +185,7 @@ class Scraper():
             label_xpath: str,
             value_xpath: str,
             flag_xpath: str
-    ) -> Dict[Tuple[str, bool], str]:
+    ) -> MutableMapping[Tuple[str, bool], str]:
         return {
             (xpath_text(row_node, label_xpath, True), bool(row_node.xpath(flag_xpath))):
             first_line(xpath_text(row_node, value_xpath, True)).strip()
@@ -200,7 +200,7 @@ class Scraper():
         return response
 
     @staticmethod
-    def form_inputs_to_post_data(form: html.HtmlElement) -> Dict[str, str]:
+    def form_inputs_to_post_data(form: html.HtmlElement) -> MutableMapping[str, str]:
         return {i.name: i.value for i in form.xpath(".//input")}
 
     @staticmethod
@@ -223,7 +223,7 @@ class DWRMethod(ABC):
         self.url = urllib.parse.urljoin(self.base_url, self.method_url)
 
     @staticmethod
-    def params_to_payload(params: Dict[str, str]) -> str:
+    def params_to_payload(params: Mapping[str, str]) -> str:
         return ''.join(["%s=%s\n" % (p_name, p_value) for p_name, p_value in params.items()])
 
     def session_id(self, dwr_id: str) -> str:
