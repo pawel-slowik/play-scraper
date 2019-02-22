@@ -150,6 +150,8 @@ class Scraper():
             ('1000 minut na Ukrain\u0119', False): 'voice_bundle_1000min_UA',
             ('Roaming zagraniczny', False): 'roaming',
             ('Paczka roaming internet UE 500 MB', False): 'roaming_EU_data_bundle_500MB',
+            ('1 GB do wykorzystania w UE', False): 'roaming_EU_data_bundle_1GB',
+            ('3 GB do wykorzystania w UE', False): 'roaming_EU_data_bundle_3GB',
         }
         value_map = {
             '': False,

@@ -38,6 +38,8 @@ Output will be similar to:
 	no_data_limit_nights: False
 	data_bundle_5GB: False
 	no_data_limit_week: False
+	roaming_EU_data_bundle_1GB: False
+	roaming_EU_data_bundle_3GB: False
 	cheaper_UA: False
 	roaming: False
 	roaming_EU_data_bundle_500MB: False
