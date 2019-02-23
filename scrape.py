@@ -22,6 +22,7 @@ class Scraper():
     logout_url = 'https://konto.play.pl/opensso/UI/Logout'
     dwr_base_url = 'https://24.play.pl/Play24/dwr/'
     dwr_page = '/Play24/Welcome'
+    dwr_cookie_domain = '24.play.pl'
 
     def __init__(self, login: str, password: str) -> None:
         self.login = login
@@ -64,7 +65,11 @@ class Scraper():
             return self.dwr_id
         dwr_method = DWRInit(self.dwr_base_url, self.dwr_page)
         self.dwr_id = self.call_dwr_method(dwr_method)
-        self.session.cookies.set('DWRSESSIONID', self.dwr_id, domain='24.play.pl') # type: ignore
+        self.session.cookies.set( # type: ignore
+            'DWRSESSIONID',
+            self.dwr_id,
+            domain=self.dwr_cookie_domain
+        )
         return self.dwr_id
 
     def call_dwr_method(self, dwr_method: 'DWRMethod', **kwargs: str) -> str:
