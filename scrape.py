@@ -47,12 +47,12 @@ class Scraper():
 
     def get_balance(self) -> MutableMapping[str, BalanceValue]:
         dwr_method = DWRBalance(self.dwr_base_url, self.dwr_page)
-        balance_html = self.call_drw_method(dwr_method, **{"dwr_id": self.init_dwr()})
+        balance_html = self.call_dwr_method(dwr_method, **{"dwr_id": self.init_dwr()})
         return self.parse_balance_data(balance_html)
 
     def list_services(self) -> MutableMapping[str, bool]:
         dwr_method = DWRServices(self.dwr_base_url, self.dwr_page)
-        services_html = self.call_drw_method(dwr_method, **{"dwr_id": self.init_dwr()})
+        services_html = self.call_dwr_method(dwr_method, **{"dwr_id": self.init_dwr()})
         return self.parse_services_data(services_html)
 
     def log_out(self) -> None:
@@ -63,11 +63,11 @@ class Scraper():
         if self.dwr_id is not None:
             return self.dwr_id
         dwr_method = DWRInit(self.dwr_base_url, self.dwr_page)
-        self.dwr_id = self.call_drw_method(dwr_method)
+        self.dwr_id = self.call_dwr_method(dwr_method)
         self.session.cookies.set('DWRSESSIONID', self.dwr_id, domain='24.play.pl') # type: ignore
         return self.dwr_id
 
-    def call_drw_method(self, dwr_method: 'DWRMethod', **kwargs: str) -> str:
+    def call_dwr_method(self, dwr_method: 'DWRMethod', **kwargs: str) -> str:
         response = self.session.post(
             dwr_method.url,
             dwr_method.create_payload(**kwargs).encode("us-ascii")
