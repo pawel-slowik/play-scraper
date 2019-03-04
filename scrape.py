@@ -356,7 +356,7 @@ def first_line(string: str) -> str:
 def main() -> None:
     import configparser
     config_dir = os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
-    config = configparser.SafeConfigParser()
+    config = configparser.ConfigParser()
     config.read(os.path.join(config_dir, '24.play.pl.ini'))
     scraper = Scraper(config.get('auth', 'login'), config.get('auth', 'password'))
     scraper.log_in()
