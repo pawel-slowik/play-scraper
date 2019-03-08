@@ -20,9 +20,6 @@ class Scraper():
 
     start_url = 'https://24.play.pl/'
     logout_url = 'https://konto.play.pl/opensso/UI/Logout'
-    dwr_base_url = 'https://24.play.pl/Play24/dwr/'
-    dwr_page = '/Play24/Welcome'
-    dwr_cookie_domain = '24.play.pl'
 
     def __init__(self, login: str, password: str) -> None:
         self.login = login
@@ -47,12 +44,12 @@ class Scraper():
         self.follow_js_form_redirection(response)
 
     def get_balance(self) -> MutableMapping[str, BalanceValue]:
-        dwr_method = DWRBalance(self.dwr_base_url, self.dwr_page)
+        dwr_method = DWRBalance()
         balance_html = self.call_dwr_method(dwr_method, **{"dwr_id": self.init_dwr()})
         return self.parse_balance_data(balance_html)
 
     def list_services(self) -> MutableMapping[str, bool]:
-        dwr_method = DWRServices(self.dwr_base_url, self.dwr_page)
+        dwr_method = DWRServices()
         services_html = self.call_dwr_method(dwr_method, **{"dwr_id": self.init_dwr()})
         return self.parse_services_data(services_html)
 
@@ -63,12 +60,12 @@ class Scraper():
     def init_dwr(self) -> str:
         if self.dwr_id is not None:
             return self.dwr_id
-        dwr_method = DWRInit(self.dwr_base_url, self.dwr_page)
+        dwr_method = DWRInit()
         self.dwr_id = self.call_dwr_method(dwr_method)
         self.session.cookies.set( # type: ignore
             'DWRSESSIONID',
             self.dwr_id,
-            domain=self.dwr_cookie_domain
+            domain=dwr_method.cookie_domain
         )
         return self.dwr_id
 
@@ -222,11 +219,12 @@ class Scraper():
 
 class DWRMethod(ABC):
 
+    base_url = "https://24.play.pl/Play24/dwr/"
+    page = "/Play24/Welcome"
+    cookie_domain = "24.play.pl"
     method_url = ""
 
-    def __init__(self, base_url: str, page: str) -> None:
-        self.base_url = base_url
-        self.page = page
+    def __init__(self) -> None:
         self.url = urllib.parse.urljoin(self.base_url, self.method_url)
 
     @staticmethod
