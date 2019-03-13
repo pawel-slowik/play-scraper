@@ -222,10 +222,11 @@ class DWRMethod(ABC):
     base_url = "https://24.play.pl/Play24/dwr/"
     page = "/Play24/Welcome"
     cookie_domain = "24.play.pl"
-    method_url = ""
+    url = ""
 
-    def __init__(self) -> None:
-        self.url = urllib.parse.urljoin(self.base_url, self.method_url)
+    @classmethod
+    def create_url(cls, path: str) -> str:
+        return urllib.parse.urljoin(cls.base_url, path)
 
     @staticmethod
     def params_to_payload(params: Mapping[str, str]) -> str:
@@ -260,7 +261,7 @@ class DWRMethod(ABC):
 
 class DWRInit(DWRMethod):
 
-    method_url = 'call/plaincall/__System.generateId.dwr'
+    url = DWRMethod.create_url('call/plaincall/__System.generateId.dwr')
 
     def create_payload(self, **_: str) -> str:
         dwr_init_params = {
@@ -285,7 +286,7 @@ class DWRInit(DWRMethod):
 
 class DWRBalance(DWRMethod):
 
-    method_url = 'call/plaincall/balanceRemoteService.getBalances.dwr'
+    url = DWRMethod.create_url('call/plaincall/balanceRemoteService.getBalances.dwr')
 
     def create_payload(self, **kwargs: str) -> str:
         balance_params = {
@@ -321,7 +322,7 @@ class DWRBalance(DWRMethod):
 
 class DWRServices(DWRMethod):
 
-    method_url = 'call/plaincall/servicesRemoteService.getComponentsList.dwr'
+    url = DWRMethod.create_url('call/plaincall/servicesRemoteService.getComponentsList.dwr')
 
     def create_payload(self, **kwargs: str) -> str:
         service_params = {
