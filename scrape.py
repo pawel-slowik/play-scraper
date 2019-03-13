@@ -232,11 +232,12 @@ class DWRMethod(ABC):
     def params_to_payload(params: Mapping[str, str]) -> str:
         return ''.join(["%s=%s\n" % (p_name, p_value) for p_name, p_value in params.items()])
 
-    def session_id(self, dwr_id: str) -> str:
+    @classmethod
+    def session_id(cls, dwr_id: str) -> str:
         return '%s/%s-%s' % (
             dwr_id,
-            self.tokenify(int(time.time() * 1000)),
-            self.tokenify(int(random.random() * 1e+16))
+            cls.tokenify(int(time.time() * 1000)),
+            cls.tokenify(int(random.random() * 1e+16))
         )
 
     @staticmethod
