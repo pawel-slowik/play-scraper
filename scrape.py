@@ -63,7 +63,7 @@ class Scraper():
         dwr_method = DWRInit()
         self.dwr_id = self.call_dwr_method(dwr_method)
         self.session.cookies.set( # type: ignore
-            'DWRSESSIONID',
+            dwr_method.cookie_name,
             self.dwr_id,
             domain=dwr_method.cookie_domain
         )
@@ -221,6 +221,7 @@ class DWRMethod(ABC):
 
     base_url = "https://24.play.pl/Play24/dwr/"
     page = "/Play24/Welcome"
+    cookie_name = "DWRSESSIONID"
     cookie_domain = "24.play.pl"
     url = ""
 
