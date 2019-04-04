@@ -96,11 +96,11 @@ class Scraper():
             return value
 
         row_xpath = (
-            "//div[contains(@class, 'row-fluid')]"
-            "/div[contains(@class, 'row-fluid') and not(contains(@class, 'collapse'))]"
+            "//div[contains(@class, 'border-apla')]"
+            "/div[@class='level']"
         )
-        label_xpath = "./span[contains(@class, 'span4')]"
-        value_xpath = "./span[contains(@class, 'span5')]"
+        label_xpath = "./div[contains(@class, 'level-left')]"
+        value_xpath = "./div[contains(@class, 'level-item')]"
         parsed = self.parse_table(html_code, row_xpath, label_xpath, value_xpath, False)
         label_map = {
             'Konto': 'balance_PLN',
@@ -128,7 +128,7 @@ class Scraper():
         }
 
     def parse_services_data(self, html_code: str) -> MutableMapping[str, bool]:
-        row_xpath = "//div[contains(@class, 'ml-8')]"
+        row_xpath = "//div[contains(@class, 'image-tile')]"
         label_xpath = ".//p[contains(@class, 'temp_title')]"
         value_xpath = ".//div[contains(@class, 'active-label')]"
         flag_xpath = ".//div[contains(@class, 'tile-actions')]/div[contains(., 'miesi\u0119cznie')]"
