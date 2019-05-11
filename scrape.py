@@ -9,7 +9,8 @@ import math
 import json
 import datetime
 from abc import ABC, abstractmethod
-from typing import Mapping, MutableMapping, Tuple, Union, Optional, Match
+from typing import Mapping, MutableMapping, Tuple, Union, Match
+from typing import Optional # pylint: disable-msg=unused-import
 
 import requests
 from lxml import html
@@ -25,7 +26,7 @@ class Scraper():
         self.login = login
         self.password = password
         self.session = requests.Session()
-        self.dwr_id: Optional[str] = None
+        self.dwr_id = None # type: Optional[str]
 
     def log_in(self) -> None:
         # follow a bunch of redirects, picking up cookies along the way,
