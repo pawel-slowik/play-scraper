@@ -44,12 +44,12 @@ class Scraper():
         response.raise_for_status()
         self.follow_js_form_redirection(response)
 
-    def get_balance(self) -> MutableMapping[str, BalanceValue]:
+    def get_balance(self) -> Mapping[str, BalanceValue]:
         dwr_method = DWRBalance()
         balance_html = dwr_method.call(self.session, **{"dwr_id": self.init_dwr()})
         return self.parse_balance_data(balance_html)
 
-    def list_services(self) -> MutableMapping[str, bool]:
+    def list_services(self) -> Mapping[str, bool]:
         dwr_method = DWRServices()
         services_html = dwr_method.call(self.session, **{"dwr_id": self.init_dwr()})
         return self.parse_services_data(services_html)
@@ -70,7 +70,7 @@ class Scraper():
         )
         return self.dwr_id
 
-    def parse_balance_data(self, html_code: str) -> MutableMapping[str, BalanceValue]:
+    def parse_balance_data(self, html_code: str) -> Mapping[str, BalanceValue]:
 
         def parse_balance(balance_str: str) -> float:
             match = re.search("^(?P<int>[0-9]+)(,(?P<fract>[0-9]{2})){0,1} z\u0142", balance_str)
@@ -128,7 +128,7 @@ class Scraper():
             for label, value in parsed.items()
         }
 
-    def parse_services_data(self, html_code: str) -> MutableMapping[str, bool]:
+    def parse_services_data(self, html_code: str) -> Mapping[str, bool]:
         row_xpath = "//div[contains(@class, 'image-tile')]"
         label_xpath = ".//p[contains(@class, 'temp_title')]"
         value_xpath = ".//div[contains(@class, 'active-label')]"
@@ -168,7 +168,7 @@ class Scraper():
             label_xpath: str,
             value_xpath: str,
             allow_empty_value: bool
-    ) -> MutableMapping[str, str]:
+    ) -> Mapping[str, str]:
         return {
             xpath_text(row_node, label_xpath, False):
             first_line(xpath_text(row_node, value_xpath, allow_empty_value)).strip()
@@ -182,7 +182,7 @@ class Scraper():
             label_xpath: str,
             value_xpath: str,
             flag_xpath: str
-    ) -> MutableMapping[Tuple[str, bool], str]:
+    ) -> Mapping[Tuple[str, bool], str]:
         return {
             (xpath_text(row_node, label_xpath, True), bool(row_node.xpath(flag_xpath))):
             first_line(xpath_text(row_node, value_xpath, True)).strip()
