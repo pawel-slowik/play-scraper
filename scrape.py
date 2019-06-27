@@ -147,6 +147,9 @@ class Scraper():
             ('500 MB do wykorzystania w UE', False): 'roaming_EU_data_bundle_500MB',
             ('1 GB do wykorzystania w UE', False): 'roaming_EU_data_bundle_1GB',
             ('3 GB do wykorzystania w UE', False): 'roaming_EU_data_bundle_3GB',
+            ('Pakiet Internet Emiraty 150 MB', False): 'roaming_AE_data_bundle_150MB',
+            ('Pakiet Internet \u015awiat 1 GB', False): 'roaming_data_bundle_1GB',
+            ('Pakiet Internet \u015awiat 300 MB', False): 'roaming_data_bundle_300MB',
         }
         value_map = {
             '': False,
