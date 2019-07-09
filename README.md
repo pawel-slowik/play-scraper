@@ -28,6 +28,7 @@ Output will be similar to:
 	incoming_expiration_date: YYYY-MM-DD
 	data_sale:
 	free_data_GB: 33.4
+	free_youtube_summer_recurring: False
 	cheaper_roaming_EU_data_GB: 5.0
 	premium_services_limit_PLN: 35.0
 	voice_bundle_1000min_UA: False
