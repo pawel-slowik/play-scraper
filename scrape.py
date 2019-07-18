@@ -90,6 +90,16 @@ class Scraper():
                 value /= 1000
             return value
 
+        def parse_hours_minutes(hours_minutes_str: str) -> int:
+            match = re.search("^(?P<hours>[0-9]+):(?P<minutes>[0-9]+) min", hours_minutes_str)
+            if not match:
+                raise ValueError("invalid hours:minutes value: %s" % hours_minutes_str)
+            hours = int(match.group("hours"))
+            minutes = int(match.group("minutes"))
+            if minutes > 59:
+                raise ValueError("invalid minutes value: %s" % hours_minutes_str)
+            return hours * 60 + minutes
+
         def parse_float(re_match: Match) -> float:
             value = float(re_match.group("int"))
             if re_match.group("fract") is not None:
@@ -113,6 +123,8 @@ class Scraper():
             'Liczba promocyjnych GB': 'free_data_GB',
             'Limit GB w roamingu UE': 'cheaper_roaming_EU_data_GB',
             'Limit wydatk\xf3w na us\u0142ugi Premium': 'premium_services_limit_PLN',
+            'Suma do\u0142adowa\u0144 w tym miesi\u0105cu': 'credit_this_month_PLN',
+            'Minuty na Ukrain\u0119': 'UA_minutes',
         }
         value_parsers = {
             'balance_PLN': parse_balance,
@@ -122,6 +134,8 @@ class Scraper():
             'free_data_GB': parse_data_cap,
             'cheaper_roaming_EU_data_GB': parse_data_cap,
             'premium_services_limit_PLN': parse_balance,
+            'credit_this_month_PLN': parse_balance,
+            'UA_minutes': parse_hours_minutes,
         }
         return {
             label_map[label]: value_parsers[label_map[label]](value)
