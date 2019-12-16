@@ -100,6 +100,12 @@ class Scraper():
                 raise ValueError("invalid minutes value: %s" % hours_minutes_str)
             return hours * 60 + minutes
 
+        def parse_quantity(quantity_str: str) -> int:
+            match = re.search(r"^(?P<int>[0-9]+) (?P<unit>szt\.)", quantity_str)
+            if not match:
+                raise ValueError("invalid quantity: %s" % quantity_str)
+            return int(match.group("int"))
+
         def parse_float(re_match: Match) -> float:
             value = float(re_match.group("int"))
             if re_match.group("fract") is not None:
@@ -125,6 +131,8 @@ class Scraper():
             'Limit wydatk\xf3w na us\u0142ugi Premium': 'premium_services_limit_PLN',
             'Suma do\u0142adowa\u0144 w tym miesi\u0105cu': 'credit_this_month_PLN',
             'Minuty na Ukrain\u0119': 'UA_minutes',
+            'Minuty do wszystkich sieci': 'minutes_all_networks',
+            'SMS-y do wszystkich': 'SMS_all_count',
         }
         value_parsers = {
             'balance_PLN': parse_balance,
@@ -136,6 +144,8 @@ class Scraper():
             'premium_services_limit_PLN': parse_balance,
             'credit_this_month_PLN': parse_balance,
             'UA_minutes': parse_hours_minutes,
+            'minutes_all_networks': parse_hours_minutes,
+            'SMS_all_count': parse_quantity,
         }
         return {
             label_map[label]: value_parsers[label_map[label]](value)

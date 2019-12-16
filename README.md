@@ -26,7 +26,9 @@ Output will be similar to:
 	balance_PLN: 11.22
 	outgoing_expiration_date: YYYY-MM-DD
 	incoming_expiration_date: YYYY-MM-DD
+	minutes_all_networks: 0
 	credit_this_month_PLN: 0.0
+	SMS_all_count: 0
 	data_sale:
 	free_data_GB: 33.4
 	UA_minutes: 0
