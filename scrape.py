@@ -9,7 +9,7 @@ import math
 import json
 import datetime
 from abc import ABC, abstractmethod
-from typing import Mapping, MutableMapping, Tuple, Union, Match
+from typing import Iterable, Mapping, MutableMapping, Tuple, Union, Match
 from typing import Optional # pylint: disable-msg=unused-import
 
 import requests
@@ -380,6 +380,29 @@ def xpath_text(parent_node: html.HtmlElement, xpath: str, allow_empty: bool) -> 
 def first_line(string: str) -> str:
     return "" if string == "" else string.splitlines()[0]
 
+def filter_output(
+        balance_data: Mapping[str, BalanceValue],
+        services_data: Mapping[str, bool],
+        keys: Iterable[str]
+) -> Tuple[
+        Mapping[str, BalanceValue],
+        Mapping[str, bool]
+]:
+    keys = tuple(keys)
+    if not keys:
+        return balance_data, services_data
+    output_balance_data = {}
+    output_services_data = {}
+    for key in keys:
+        if key in balance_data:
+            output_balance_data[key] = balance_data[key]
+            continue
+        if key in services_data:
+            output_services_data[key] = services_data[key]
+            continue
+        raise ValueError("invalid key: %s" % key)
+    return output_balance_data, output_services_data
+
 def main() -> None:
     import configparser
     config_dir = os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
@@ -390,6 +413,12 @@ def main() -> None:
     balance_data = scraper.get_balance()
     services_data = scraper.list_services()
     scraper.log_out()
+    if config.has_option("cli", "output"):
+        balance_data, services_data = filter_output(
+            balance_data,
+            services_data,
+            config.get("cli", "output").split()
+        )
     for key, value in balance_data.items():
         print("%s: %s" % (key, value))
     for key, value in services_data.items():
