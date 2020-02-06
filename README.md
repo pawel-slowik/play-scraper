@@ -48,6 +48,7 @@ Output will be similar to:
 	roaming_AE_data_bundle_150MB: False
 	roaming_data_bundle_1GB: False
 	roaming_data_bundle_300MB: False
+	1000min_10GB_UA: False
 	cheaper_UA: False
 	roaming: False
 	roaming_EU_data_bundle_500MB: False

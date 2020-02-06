@@ -175,6 +175,7 @@ class Scraper():
             ('Pakiet Internet \u015awiat 1 GB', False): 'roaming_data_bundle_1GB',
             ('Pakiet Internet \u015awiat 300 MB', False): 'roaming_data_bundle_300MB',
             ('YouTube za darmo na lato', True): 'free_youtube_summer_recurring',
+            ('Taniej na Ukrain\u0119', False): '1000min_10GB_UA',
         }
         value_map = {
             '': False,
