@@ -32,7 +32,6 @@ Output will be similar to:
 	data_sale:
 	free_data_GB: 33.4
 	UA_minutes: 0
-	free_youtube_summer_recurring: False
 	cheaper_roaming_EU_data_GB: 5.0
 	premium_services_limit_PLN: 35.0
 	voice_bundle_1000min_UA: False
@@ -41,7 +40,6 @@ Output will be similar to:
 	no_data_limit_month: True
 	no_data_limit_nights_recurring: False
 	no_data_limit_nights: False
-	data_bundle_5GB: False
 	no_data_limit_week: False
 	roaming_EU_data_bundle_1GB: False
 	roaming_EU_data_bundle_3GB: False

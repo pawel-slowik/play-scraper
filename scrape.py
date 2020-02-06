@@ -164,7 +164,6 @@ class Scraper():
             ('Tydzie\u0144 bez limitu GB', False): 'no_data_limit_week',
             ('Miesi\u0105c bez limitu GB', False): 'no_data_limit_month',
             ('Miesi\u0105c bez limitu GB', True): 'no_data_limit_month_recurring',
-            ('Pakiet 5 GB', False): 'data_bundle_5GB',
             ('Ta\u0144sze po\u0142\u0105czenia i smsy na Ukrain\u0119', True): 'cheaper_UA',
             ('1000 minut na Ukrain\u0119', False): 'voice_bundle_1000min_UA',
             ('Roaming zagraniczny', False): 'roaming',
@@ -174,7 +173,6 @@ class Scraper():
             ('Pakiet Internet Emiraty 150 MB', False): 'roaming_AE_data_bundle_150MB',
             ('Pakiet Internet \u015awiat 1 GB', False): 'roaming_data_bundle_1GB',
             ('Pakiet Internet \u015awiat 300 MB', False): 'roaming_data_bundle_300MB',
-            ('YouTube za darmo na lato', True): 'free_youtube_summer_recurring',
             ('Taniej na Ukrain\u0119', False): '1000min_10GB_UA',
         }
         value_map = {
