@@ -166,6 +166,8 @@ class Scraper():
             ('Miesi\u0105c bez limitu GB', True): 'no_data_limit_month_recurring',
             ('Ta\u0144sze po\u0142\u0105czenia i smsy na Ukrain\u0119', True): 'cheaper_UA',
             ('1000 minut na Ukrain\u0119', False): 'voice_bundle_1000min_UA',
+            ('1000 minut na Ukrain\u0119 + 10 GB na Viber', False):
+                'voice_bundle_1000min_UA_Viber_10GB',
             ('Roaming zagraniczny', False): 'roaming',
             ('500 MB do wykorzystania w UE', False): 'roaming_EU_data_bundle_500MB',
             ('1 GB do wykorzystania w UE', False): 'roaming_EU_data_bundle_1GB',

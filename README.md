@@ -35,6 +35,7 @@ Output will be similar to:
 	cheaper_roaming_EU_data_GB: 5.0
 	premium_services_limit_PLN: 35.0
 	voice_bundle_1000min_UA: False
+	voice_bundle_1000min_UA_Viber_10GB: False
 	free_data_20PLN: False
 	no_data_limit_day: False
 	no_data_limit_month_recurring: False
