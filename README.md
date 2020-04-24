@@ -37,6 +37,7 @@ Output will be similar to:
 	voice_bundle_1000min_UA: False
 	voice_bundle_1000min_UA_Viber_10GB: False
 	free_data_20PLN: False
+	free_data_200GB_for_students: False
 	no_data_limit_day: False
 	no_data_limit_month_recurring: False
 	no_data_limit_month: True
