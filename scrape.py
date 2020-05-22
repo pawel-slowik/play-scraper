@@ -178,6 +178,12 @@ class Scraper():
             ('Taniej na Ukrain\u0119', False): '1000min_10GB_UA',
             ('Internet za darmo po do\u0142adowaniu za 20 z\u0142', False): 'free_data_20PLN',
             ('Nawet 200 GB za darmo dla student\xf3w', False): 'free_data_200GB_for_students',
+            ('29 gr za minut\u0119 do Bangladeszu', False): 'voice_29_BD',
+            ('29 gr za minut\u0119 do Indii', False): 'voice_29_IN',
+            ('70 gr za minut\u0119 do Nepalu', False): 'voice_29_NP',
+            ('Taniej do Bangladeszu', False): 'cheaper_BD',
+            ('Taniej do Indii', False): 'cheaper_IN',
+            ('Taniej do Nepalu', False): 'cheaper_NP',
         }
         value_map = {
             '': False,

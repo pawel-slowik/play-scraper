@@ -36,6 +36,12 @@ Output will be similar to:
 	premium_services_limit_PLN: 35.0
 	voice_bundle_1000min_UA: False
 	voice_bundle_1000min_UA_Viber_10GB: False
+	voice_29_BD: False
+	voice_29_IN: False
+	voice_29_NP: False
+	cheaper_BD: False
+	cheaper_IN: False
+	cheaper_NP: False
 	free_data_20PLN: False
 	free_data_200GB_for_students: False
 	no_data_limit_day: False
