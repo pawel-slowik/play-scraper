@@ -133,6 +133,7 @@ class Scraper():
             'Minuty na Ukrain\u0119': 'UA_minutes',
             'Minuty do wszystkich sieci': 'minutes_all_networks',
             'SMS-y do wszystkich': 'SMS_all_count',
+            '100 GB na lato': 'summer_data_100_GB',
         }
         value_parsers = {
             'balance_PLN': parse_balance,
@@ -146,6 +147,7 @@ class Scraper():
             'UA_minutes': parse_hours_minutes,
             'minutes_all_networks': parse_hours_minutes,
             'SMS_all_count': parse_quantity,
+            'summer_data_100_GB': parse_data_cap,
         }
         return {
             label_map[label]: value_parsers[label_map[label]](value)

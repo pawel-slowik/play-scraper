@@ -33,6 +33,7 @@ Output will be similar to:
 	free_data_GB: 33.4
 	UA_minutes: 0
 	cheaper_roaming_EU_data_GB: 5.0
+	summer_data_100_GB: 0.0
 	premium_services_limit_PLN: 35.0
 	voice_bundle_1000min_UA: False
 	voice_bundle_1000min_UA_Viber_10GB: False
