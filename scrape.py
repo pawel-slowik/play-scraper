@@ -10,12 +10,13 @@ import json
 import datetime
 from abc import ABC, abstractmethod
 from typing import Iterable, Mapping, MutableMapping, Tuple, Union, Match
-from typing import Optional # pylint: disable-msg=unused-import
+from typing import Optional  # pylint: disable-msg=unused-import
 
 import requests
 from lxml import html
 
 BalanceValue = Union[str, float, bool, datetime.date]
+
 
 class Scraper():
 
@@ -26,7 +27,7 @@ class Scraper():
         self.login = login
         self.password = password
         self.session = requests.Session()
-        self.dwr_id = None # type: Optional[str]
+        self.dwr_id = None  # type: Optional[str]
 
     def log_in(self) -> None:
         # follow a bunch of redirects, picking up cookies along the way,
@@ -63,7 +64,7 @@ class Scraper():
             return self.dwr_id
         dwr_method = DWRInit()
         self.dwr_id = dwr_method.call(self.session)
-        self.session.cookies.set( # type: ignore
+        self.session.cookies.set(  # type: ignore
             dwr_method.cookie_name,
             self.dwr_id,
             domain=dwr_method.cookie_domain
@@ -247,6 +248,7 @@ class Scraper():
             if form_has_input(form, 'IDToken1') and form_has_input(form, 'IDToken2'):
                 return form
 
+
 class DWRMethod(ABC):
 
     base_url = "https://24.play.pl/Play24/dwr/"
@@ -296,6 +298,7 @@ class DWRMethod(ABC):
     def parse_response(response_body: str) -> str:
         pass
 
+
 class DWRInit(DWRMethod):
 
     url = DWRMethod.create_url('call/plaincall/__System.generateId.dwr')
@@ -320,6 +323,7 @@ class DWRInit(DWRMethod):
         if not match:
             raise ValueError("unparseable init response: %s" % response_body)
         return match.group(1)
+
 
 class DWRBalance(DWRMethod):
 
@@ -357,6 +361,7 @@ class DWRBalance(DWRMethod):
             raise ValueError("unparseable response: %r" % content)
         return content
 
+
 class DWRServices(DWRMethod):
 
     url = DWRMethod.create_url('call/plaincall/servicesRemoteService.getComponentsList.dwr')
@@ -380,14 +385,17 @@ class DWRServices(DWRMethod):
     def parse_response(response_body: str) -> str:
         return DWRBalance.parse_response(response_body)
 
+
 def xpath_text(parent_node: html.HtmlElement, xpath: str, allow_empty: bool) -> str:
     nodes = parent_node.xpath(xpath)
     if not nodes and allow_empty:
         return ""
-    return nodes[0].text_content().strip() # type: ignore
+    return nodes[0].text_content().strip()  # type: ignore
+
 
 def first_line(string: str) -> str:
     return "" if string == "" else string.splitlines()[0]
+
 
 def filter_output(
         balance_data: Mapping[str, BalanceValue],
@@ -412,6 +420,7 @@ def filter_output(
         raise ValueError("invalid key: %s" % key)
     return output_balance_data, output_services_data
 
+
 def main() -> None:
     import configparser
     config_dir = os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
@@ -432,6 +441,7 @@ def main() -> None:
         print("%s: %s" % (key, value))
     for key, value in services_data.items():
         print("%s: %s" % (key, value))
+
 
 if __name__ == '__main__':
     main()
