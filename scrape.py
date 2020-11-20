@@ -319,34 +319,6 @@ def parse_services_data(html_code: str) -> Mapping[str, bool]:
     return {label_map[label]: value_map[value] for label, value in parsed.items()}
 
 
-def parse_table(
-        html_code: str,
-        row_xpath: str,
-        label_xpath: str,
-        value_xpath: str,
-        allow_empty_value: bool
-) -> Mapping[str, str]:
-    return {
-        xpath_text(row_node, label_xpath, False):
-        first_line(xpath_text(row_node, value_xpath, allow_empty_value)).strip()
-        for row_node in html.fromstring(html_code).xpath(row_xpath)
-    }
-
-
-def parse_flagged_table(
-        html_code: str,
-        row_xpath: str,
-        label_xpath: str,
-        value_xpath: str,
-        flag_xpath: str
-) -> Mapping[Tuple[str, bool], str]:
-    return {
-        (xpath_text(row_node, label_xpath, True), bool(row_node.xpath(flag_xpath))):
-        first_line(xpath_text(row_node, value_xpath, True)).strip()
-        for row_node in html.fromstring(html_code).xpath(row_xpath)
-    }
-
-
 def parse_balance(balance_str: str) -> float:
     match = re.search("^(?P<int>[0-9]+)(,(?P<fract>[0-9]{2})){0,1} z\u0142", balance_str)
     if not match:
@@ -391,6 +363,34 @@ def parse_float(re_match: Match) -> float:
     if re_match.group("fract") is not None:
         value += float("." + re_match.group("fract"))
     return value
+
+
+def parse_table(
+        html_code: str,
+        row_xpath: str,
+        label_xpath: str,
+        value_xpath: str,
+        allow_empty_value: bool
+) -> Mapping[str, str]:
+    return {
+        xpath_text(row_node, label_xpath, False):
+        first_line(xpath_text(row_node, value_xpath, allow_empty_value)).strip()
+        for row_node in html.fromstring(html_code).xpath(row_xpath)
+    }
+
+
+def parse_flagged_table(
+        html_code: str,
+        row_xpath: str,
+        label_xpath: str,
+        value_xpath: str,
+        flag_xpath: str
+) -> Mapping[Tuple[str, bool], str]:
+    return {
+        (xpath_text(row_node, label_xpath, True), bool(row_node.xpath(flag_xpath))):
+        first_line(xpath_text(row_node, value_xpath, True)).strip()
+        for row_node in html.fromstring(html_code).xpath(row_xpath)
+    }
 
 
 def xpath_text(parent_node: html.HtmlElement, xpath: str, allow_empty: bool) -> str:
