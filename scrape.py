@@ -48,12 +48,12 @@ class Scraper():
     def get_balance(self) -> Mapping[str, BalanceValue]:
         dwr_method = DWRBalance()
         balance_html = dwr_method.call(self.session, **{"dwr_id": self.init_dwr()})
-        return Parser().parse_balance_data(balance_html)
+        return Parser.parse_balance_data(balance_html)
 
     def list_services(self) -> Mapping[str, bool]:
         dwr_method = DWRServices()
         services_html = dwr_method.call(self.session, **{"dwr_id": self.init_dwr()})
-        return Parser().parse_services_data(services_html)
+        return Parser.parse_services_data(services_html)
 
     def log_out(self) -> None:
         response = self.session.get(self.logout_url)
@@ -232,7 +232,8 @@ class DWRServices(DWRMethod):
 
 class Parser:
 
-    def parse_balance_data(self, html_code: str) -> Mapping[str, BalanceValue]:
+    @classmethod
+    def parse_balance_data(cls, html_code: str) -> Mapping[str, BalanceValue]:
 
         def parse_balance(balance_str: str) -> float:
             match = re.search("^(?P<int>[0-9]+)(,(?P<fract>[0-9]{2})){0,1} z\u0142", balance_str)
@@ -280,7 +281,7 @@ class Parser:
         )
         label_xpath = "./div[contains(@class, 'level-left')]"
         value_xpath = "./div[contains(@class, 'level-item')]"
-        parsed = self.parse_table(html_code, row_xpath, label_xpath, value_xpath, False)
+        parsed = cls.parse_table(html_code, row_xpath, label_xpath, value_xpath, False)
         label_map = {
             'Konto': 'balance_PLN',
             'Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 wychodz\u0105cych':
@@ -316,7 +317,8 @@ class Parser:
             for label, value in parsed.items()
         }
 
-    def parse_services_data(self, html_code: str) -> Mapping[str, bool]:
+    @classmethod
+    def parse_services_data(cls, html_code: str) -> Mapping[str, bool]:
         row_xpath = "//div[contains(@class, 'image-tile')]"
         label_xpath = ".//p[contains(@class, 'temp_title')]"
         value_xpath = ".//div[contains(@class, 'active-label')]"
@@ -351,7 +353,7 @@ class Parser:
             '': False,
             'W\u0142\u0105czony': True,
         }
-        parsed = self.parse_flagged_table(
+        parsed = cls.parse_flagged_table(
             html_code,
             row_xpath,
             label_xpath,
