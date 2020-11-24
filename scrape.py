@@ -189,36 +189,36 @@ def parse_services_data(html_code: str) -> Mapping[str, bool]:
     value_xpath = ".//div[contains(@class, 'active-label')]"
     flag_xpath = ".//div[contains(@class, 'tile-actions')]/div[contains(., 'miesi\u0119cznie')]"
     label_map = {
-        ('Noce bez limitu', False): 'no_data_limit_nights',
-        ('Noce bez limitu', True): 'no_data_limit_nights_recurring',
-        ('Dzie\u0144 bez limitu w Play Internet na Kart\u0119', False): 'no_data_limit_day',
-        ('Tydzie\u0144 bez limitu GB', False): 'no_data_limit_week',
-        ('Miesi\u0105c bez limitu GB', False): 'no_data_limit_month',
-        ('Miesi\u0105c bez limitu GB', True): 'no_data_limit_month_recurring',
-        ('Ta\u0144sze po\u0142\u0105czenia i smsy na Ukrain\u0119', True): 'cheaper_UA',
-        ('1000 minut na Ukrain\u0119', False): 'voice_bundle_1000min_UA',
-        ('1000 minut na Ukrain\u0119 + 10 GB na Viber', False):
-            'voice_bundle_1000min_UA_Viber_10GB',
-        ('Roaming zagraniczny', False): 'roaming',
-        ('500 MB do wykorzystania w UE', False): 'roaming_EU_data_bundle_500MB',
-        ('1 GB do wykorzystania w UE', False): 'roaming_EU_data_bundle_1GB',
-        ('3 GB do wykorzystania w UE', False): 'roaming_EU_data_bundle_3GB',
-        ('Pakiet Internet Emiraty 150 MB', False): 'roaming_AE_data_bundle_150MB',
-        ('Pakiet Internet \u015awiat 1 GB', False): 'roaming_data_bundle_1GB',
-        ('Pakiet Internet \u015awiat 300 MB', False): 'roaming_data_bundle_300MB',
-        ('29 gr za minut\u0119 do Bangladeszu', False): 'voice_29_BD',
-        ('29 gr za minut\u0119 do Indii', False): 'voice_29_IN',
-        ('70 gr za minut\u0119 do Nepalu', False): 'voice_29_NP',
-        ('Taniej do Bangladeszu', False): 'cheaper_BD',
-        ('Taniej do Indii', False): 'cheaper_IN',
-        ('Taniej do Nepalu', False): 'cheaper_NP',
-        ('Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 7 dni', False): 'extend_7days',
-        ('Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 31 dni', False): 'extend_31days',
-        ('Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 365 dni', False): 'extend_365days',
+        ("Noce bez limitu", False): "no_data_limit_nights",
+        ("Noce bez limitu", True): "no_data_limit_nights_recurring",
+        ("Dzie\u0144 bez limitu w Play Internet na Kart\u0119", False): "no_data_limit_day",
+        ("Tydzie\u0144 bez limitu GB", False): "no_data_limit_week",
+        ("Miesi\u0105c bez limitu GB", False): "no_data_limit_month",
+        ("Miesi\u0105c bez limitu GB", True): "no_data_limit_month_recurring",
+        ("Ta\u0144sze po\u0142\u0105czenia i smsy na Ukrain\u0119", True): "cheaper_UA",
+        ("1000 minut na Ukrain\u0119", False): "voice_bundle_1000min_UA",
+        ("1000 minut na Ukrain\u0119 + 10 GB na Viber", False):
+            "voice_bundle_1000min_UA_Viber_10GB",
+        ("Roaming zagraniczny", False): "roaming",
+        ("500 MB do wykorzystania w UE", False): "roaming_EU_data_bundle_500MB",
+        ("1 GB do wykorzystania w UE", False): "roaming_EU_data_bundle_1GB",
+        ("3 GB do wykorzystania w UE", False): "roaming_EU_data_bundle_3GB",
+        ("Pakiet Internet Emiraty 150 MB", False): "roaming_AE_data_bundle_150MB",
+        ("Pakiet Internet \u015awiat 1 GB", False): "roaming_data_bundle_1GB",
+        ("Pakiet Internet \u015awiat 300 MB", False): "roaming_data_bundle_300MB",
+        ("29 gr za minut\u0119 do Bangladeszu", False): "voice_29_BD",
+        ("29 gr za minut\u0119 do Indii", False): "voice_29_IN",
+        ("70 gr za minut\u0119 do Nepalu", False): "voice_29_NP",
+        ("Taniej do Bangladeszu", False): "cheaper_BD",
+        ("Taniej do Indii", False): "cheaper_IN",
+        ("Taniej do Nepalu", False): "cheaper_NP",
+        ("Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 7 dni", False): "extend_7days",
+        ("Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 31 dni", False): "extend_31days",
+        ("Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 365 dni", False): "extend_365days",
     }
     value_map = {
-        '': False,
-        'W\u0142\u0105czony': True,
+        "": False,
+        "W\u0142\u0105czony": True,
     }
     parsed = parse_flagged_table(
         html_code,
@@ -341,11 +341,11 @@ def filter_output(
 
 def main() -> None:
     import configparser
-    config_dir = os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
+    config_dir = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
     config = configparser.ConfigParser()
-    config.read(os.path.join(config_dir, '24.play.pl.ini'))
+    config.read(os.path.join(config_dir, "24.play.pl.ini"))
     driver = create_driver()
-    login(driver, config.get('auth', 'login'), config.get('auth', 'password'))
+    login(driver, config.get("auth", "login"), config.get("auth", "password"))
     balance_html = read_balance(driver)
     balance_data = parse_balance_data(balance_html)
     services_html = read_services(driver)
@@ -364,5 +364,5 @@ def main() -> None:
         print("%s: %s" % (key, value))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
