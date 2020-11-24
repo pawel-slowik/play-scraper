@@ -194,7 +194,6 @@ def parse_services_data(html_code: str) -> Mapping[str, bool]:
         ('Pakiet Internet Emiraty 150 MB', False): 'roaming_AE_data_bundle_150MB',
         ('Pakiet Internet \u015awiat 1 GB', False): 'roaming_data_bundle_1GB',
         ('Pakiet Internet \u015awiat 300 MB', False): 'roaming_data_bundle_300MB',
-        ('Nawet 200 GB za darmo dla student\xf3w', False): 'free_data_200GB_for_students',
         ('29 gr za minut\u0119 do Bangladeszu', False): 'voice_29_BD',
         ('29 gr za minut\u0119 do Indii', False): 'voice_29_IN',
         ('70 gr za minut\u0119 do Nepalu', False): 'voice_29_NP',

@@ -57,7 +57,6 @@ Output will be similar to:
 	cheaper_BD: False
 	cheaper_IN: False
 	cheaper_NP: False
-	free_data_200GB_for_students: False
 	no_data_limit_day: False
 	no_data_limit_month_recurring: False
 	no_data_limit_month: True
