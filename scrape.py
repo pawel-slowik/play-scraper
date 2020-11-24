@@ -173,7 +173,7 @@ def parse_balance_data(html_code: str) -> Mapping[str, BalanceValue]:
 
 def parse_services_data(html_code: str) -> Mapping[str, bool]:
     row_xpath = "//div[contains(@class, 'image-tile')]"
-    label_xpath = ".//p[contains(@class, 'temp_title')]"
+    label_xpath = ".//p[contains(@class, 'tile-title')]"
     value_xpath = ".//div[contains(@class, 'active-label')]"
     flag_xpath = ".//div[contains(@class, 'tile-actions')]/div[contains(., 'miesi\u0119cznie')]"
     label_map = {
