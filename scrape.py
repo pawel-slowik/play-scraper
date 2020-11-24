@@ -201,6 +201,9 @@ def parse_services_data(html_code: str) -> Mapping[str, bool]:
         ('Taniej do Bangladeszu', False): 'cheaper_BD',
         ('Taniej do Indii', False): 'cheaper_IN',
         ('Taniej do Nepalu', False): 'cheaper_NP',
+        ('Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 7 dni', False): 'extend_7days',
+        ('Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 31 dni', False): 'extend_31days',
+        ('Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 365 dni', False): 'extend_365days',
     }
     value_map = {
         '': False,

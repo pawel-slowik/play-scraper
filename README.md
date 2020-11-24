@@ -43,6 +43,9 @@ Output will be similar to:
 	data_sale:
 	free_data_GB: 33.4
 	UA_minutes: 0
+	extend_7days: False
+	extend_31days: False
+	extend_365days: False
 	cheaper_roaming_EU_data_GB: 5.0
 	summer_data_100_GB: 0.0
 	premium_services_limit_PLN: 35.0
