@@ -4,7 +4,7 @@ import os
 import re
 import datetime
 from time import sleep
-from typing import Iterable, Mapping, Tuple, Union, Match
+from typing import Callable, Iterable, Mapping, Tuple, Union, Match
 
 from lxml import html
 from selenium.common.exceptions import StaleElementReferenceException
@@ -135,31 +135,51 @@ def parse_balance_data(html_code: str) -> Mapping[str, BalanceValue]:
     label_xpath = "./div[contains(@class, 'level-left')]"
     value_xpath = "./div[contains(@class, 'level-item')]"
     parsed = parse_table(html_code, row_xpath, label_xpath, value_xpath, False)
-    label_map = {
-        'Konto': 'balance_PLN',
-        'Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 wychodz\u0105cych':
-            'outgoing_expiration_date',
-        'Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 przychodz\u0105cych':
-            'incoming_expiration_date',
-        'Liczba promocyjnych GB': 'free_data_GB',
-        'Limit GB w roamingu UE': 'cheaper_roaming_EU_data_GB',
-        'Minuty na Ukrain\u0119': 'UA_minutes',
-        'Minuty do wszystkich sieci': 'minutes_all_networks',
-        'SMS-y do wszystkich': 'SMS_all_count',
-    }
-    value_parsers = {
-        'balance_PLN': parse_balance,
-        'outgoing_expiration_date': parse_date,
-        'incoming_expiration_date': parse_date,
-        'free_data_GB': parse_data_cap,
-        'cheaper_roaming_EU_data_GB': parse_data_cap,
-        'UA_minutes': parse_hours_minutes,
-        'minutes_all_networks': parse_hours_minutes,
-        'SMS_all_count': parse_quantity,
-    }
+    parsers: Iterable[Tuple[str, str, Callable]] = [
+        (
+            "Konto",
+            "balance_PLN",
+            parse_balance,
+        ),
+        (
+            "Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 wychodz\u0105cych",
+            "outgoing_expiration_date",
+            parse_date,
+        ),
+        (
+            "Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 przychodz\u0105cych",
+            "incoming_expiration_date",
+            parse_date,
+        ),
+        (
+            "Liczba promocyjnych GB",
+            "free_data_GB",
+            parse_data_cap,
+        ),
+        (
+            "Limit GB w roamingu UE",
+            "cheaper_roaming_EU_data_GB",
+            parse_data_cap,
+        ),
+        (
+            "Minuty na Ukrain\u0119",
+            "UA_minutes",
+            parse_hours_minutes,
+        ),
+        (
+            "Minuty do wszystkich sieci",
+            "minutes_all_networks",
+            parse_hours_minutes,
+        ),
+        (
+            "SMS-y do wszystkich",
+            "SMS_all_count",
+            parse_quantity,
+        ),
+    ]
     return {
-        label_map[label]: value_parsers[label_map[label]](value)
-        for label, value in parsed.items()
+        key: parser(parsed[label])
+        for label, key, parser in parsers
     }
 
 
