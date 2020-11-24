@@ -1,233 +1,130 @@
 #!/usr/bin/env python3
 
 import os
-import urllib.parse
-import random
-import time
 import re
-import math
-import json
 import datetime
-from abc import ABC, abstractmethod
-from typing import Iterable, Mapping, MutableMapping, Tuple, Union, Match
-from typing import Optional  # pylint: disable-msg=unused-import
+from time import sleep
+from typing import Iterable, Mapping, Tuple, Union, Match
 
-import requests
 from lxml import html
+from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver import Firefox, FirefoxProfile
+from selenium.webdriver.remote.webdriver import WebDriver, WebElement
+from selenium.webdriver.support.ui import WebDriverWait
+
 
 BalanceValue = Union[str, float, bool, datetime.date]
 
 
-class Scraper():
-
-    start_url = 'https://24.play.pl/'
-    logout_url = 'https://konto.play.pl/opensso/UI/Logout'
-
-    def __init__(self, login: str, password: str) -> None:
-        self.login = login
-        self.password = password
-        self.session = requests.Session()
-        self.dwr_id = None  # type: Optional[str]
-
-    def log_in(self) -> None:
-        # follow a bunch of redirects, picking up cookies along the way,
-        # until we land at the login screen
-        response = self.session.get(self.start_url)
-        response.raise_for_status()
-        response = self.follow_js_form_redirection(response)
-        # fill and send the login form
-        login_form = self.find_login_form(response.content)
-        post_data = self.form_inputs_to_post_data(login_form)
-        post_data['IDToken1'] = self.login
-        post_data['IDToken2'] = self.password
-        action = urllib.parse.urljoin(response.url, login_form.action)
-        response = self.session.post(action, data=post_data)
-        response.raise_for_status()
-        self.follow_js_form_redirection(response)
-
-    def get_balance(self) -> Mapping[str, BalanceValue]:
-        dwr_method = DWRBalance()
-        balance_html = dwr_method.call(self.session, **{"dwr_id": self.init_dwr()})
-        return parse_balance_data(balance_html)
-
-    def list_services(self) -> Mapping[str, bool]:
-        dwr_method = DWRServices()
-        services_html = dwr_method.call(self.session, **{"dwr_id": self.init_dwr()})
-        return parse_services_data(services_html)
-
-    def log_out(self) -> None:
-        response = self.session.get(self.logout_url)
-        response.raise_for_status()
-
-    def init_dwr(self) -> str:
-        if self.dwr_id is not None:
-            return self.dwr_id
-        dwr_method = DWRInit()
-        self.dwr_id = dwr_method.call(self.session)
-        self.session.cookies.set(  # type: ignore
-            dwr_method.cookie_name,
-            self.dwr_id,
-            domain=dwr_method.cookie_domain
-        )
-        return self.dwr_id
-
-    def follow_js_form_redirection(self, response: requests.Response) -> requests.Response:
-        form = html.fromstring(response.content).xpath("//form[1]")[0]
-        post_data = self.form_inputs_to_post_data(form)
-        response = self.session.post(form.action, data=post_data)
-        response.raise_for_status()
-        return response
-
-    @staticmethod
-    def form_inputs_to_post_data(form: html.HtmlElement) -> MutableMapping[str, str]:
-        return {i.name: i.value for i in form.xpath(".//input")}
-
-    @staticmethod
-    def find_login_form(page_html: bytes) -> html.HtmlElement:
-
-        def form_has_input(form: html.HtmlElement, input_name: str) -> bool:
-            return bool(form.xpath(".//input[@name='%s']" % (input_name,)))
-
-        for form in html.fromstring(page_html).xpath("//form"):
-            if form_has_input(form, 'IDToken1') and form_has_input(form, 'IDToken2'):
-                return form
+def create_driver() -> WebDriver:
+    # disable navigator.webdriver in order to make driver automation
+    # undetectable: https://stackoverflow.com/a/60626696
+    profile = FirefoxProfile()
+    profile.set_preference("dom.webdriver.enabled", False)
+    profile.set_preference("useAutomationExtension", False)
+    profile.update_preferences()
+    driver = Firefox(
+        executable_path="./selenium-drivers/geckodriver",
+        firefox_profile=profile,
+    )
+    return driver
 
 
-class DWRMethod(ABC):
+def login(driver: WebDriver, username: str, password: str) -> None:
 
-    base_url = "https://24.play.pl/Play24/dwr/"
-    page = "/Play24/Welcome"
-    cookie_name = "DWRSESSIONID"
-    cookie_domain = "24.play.pl"
-    url = ""
+    def find_form_username_input(driver: WebDriver) -> WebElement:
+        return driver.find_element_by_css_selector("input[name=IDToken1]")
 
-    def call(self, session: requests.Session, **kwargs: str) -> str:
-        response = session.post(self.url, self.create_payload(**kwargs).encode("us-ascii"))
-        response.raise_for_status()
-        return self.parse_response(response.text)
+    def find_form_password_input(driver: WebDriver) -> WebElement:
+        return driver.find_element_by_css_selector("input[name=IDToken2]")
 
-    @classmethod
-    def create_url(cls, path: str) -> str:
-        return urllib.parse.urljoin(cls.base_url, path)
+    def find_form_submit_button(driver: WebDriver) -> WebElement:
+        return driver.find_element_by_css_selector("button[name='Login.Submit']")
 
-    @staticmethod
-    def params_to_payload(params: Mapping[str, str]) -> str:
-        return ''.join(["%s=%s\n" % (p_name, p_value) for p_name, p_value in params.items()])
-
-    @classmethod
-    def session_id(cls, dwr_id: str) -> str:
-        return '%s/%s-%s' % (
-            dwr_id,
-            cls.tokenify(int(time.time() * 1000)),
-            cls.tokenify(int(random.random() * 1e+16))
+    def login_form_is_loaded(driver: WebDriver) -> bool:
+        return bool(
+            find_form_username_input(driver)
+            and find_form_password_input(driver)
+            and find_form_submit_button(driver)
         )
 
-    @staticmethod
-    def tokenify(number: int) -> str:
-        # emulate the JavaScript `dwr.engine.util.tokenify` function
-        tokenbuf = []
-        charmap = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ*$"
-        remainder = number
-        while remainder > 0:
-            tokenbuf.append(charmap[remainder & 0x3F])
-            remainder = math.floor(remainder / 64)
-        return ''.join(tokenbuf)
+    def user_profile_is_loaded(driver: WebDriver) -> bool:
+        if driver.current_url != "https://24.play.pl/Play24/Welcome":
+            return False
+        if not find_balance_button(driver):
+            return False
+        for loader in driver.find_elements_by_css_selector(".loader-content"):
+            try:
+                if loader.is_displayed():
+                    return False
+            except StaleElementReferenceException:
+                return False
+        return True
 
-    @abstractmethod
-    def create_payload(self, **kwargs: str) -> str:
-        pass
-
-    @staticmethod
-    @abstractmethod
-    def parse_response(response_body: str) -> str:
-        pass
-
-
-class DWRInit(DWRMethod):
-
-    url = DWRMethod.create_url('call/plaincall/__System.generateId.dwr')
-
-    def create_payload(self, **_: str) -> str:
-        dwr_init_params = {
-            'callCount': '1',
-            'c0-scriptName': '__System',
-            'c0-methodName': 'generateId',
-            'c0-id': '0',
-            'batchId': '0',
-            'instanceId': '0',
-            'page': urllib.parse.quote_plus(self.page),
-            'scriptSessionId': '',
-        }
-        return self.params_to_payload(dwr_init_params)
-
-    @staticmethod
-    def parse_response(response_body: str) -> str:
-        regexp = r'dwr\.engine\.remote\.handleCallback\("[0-9]+","[0-9]+","([^"]+)"\);'
-        match = re.search(regexp, response_body)
-        if not match:
-            raise ValueError("unparseable init response: %s" % response_body)
-        return match.group(1)
+    wait = WebDriverWait(driver, 10)
+    driver.get("https://24.play.pl/")
+    wait.until(login_form_is_loaded)
+    find_form_username_input(driver).send_keys(username)
+    sleep(2)
+    find_form_password_input(driver).send_keys(password)
+    sleep(2)
+    find_form_submit_button(driver).click()
+    wait.until(user_profile_is_loaded)
 
 
-class DWRBalance(DWRMethod):
+def read_balance(driver: WebDriver) -> str:
 
-    url = DWRMethod.create_url('call/plaincall/balanceRemoteService.getBalances.dwr')
+    def find_close_balance_modal_button(driver: WebDriver) -> WebElement:
+        return driver.find_element_by_css_selector("#fancybox-close")
 
-    def create_payload(self, **kwargs: str) -> str:
-        balance_params = {
-            'callCount': '1',
-            'nextReverseAjaxIndex': '0',
-            'c0-scriptName': 'balanceRemoteService',
-            'c0-methodName': 'getBalances',
-            'c0-id': '0',
-            'batchId': '0',
-            'instanceId': '0',
-            'page': urllib.parse.quote_plus(self.page),
-            'scriptSessionId': self.session_id(kwargs["dwr_id"]),
-        }
-        return self.params_to_payload(balance_params)
+    def find_balance_modal(driver: WebDriver) -> WebElement:
+        return driver.find_element_by_css_selector("#ballancesModalBox")
 
-    @staticmethod
-    def parse_response(response_body: str) -> str:
-        begin_marker = re.escape(
-            'dwr.engine.remote.handleCallback("0","0",'
-            'dwr.engine.remote.newObject("BaseDwrTransferData",'
-            '{responseStatus:dwr.engine.remote.newObject("ServiceDwrResponse",'
-            '{messages:{},nextStep:null,status:"1"}),tableData:null,view:'
-        )
-        end_marker = re.escape('}));')
-        regexp = r'^%s(.+)%s\s*$' % (begin_marker, end_marker)
-        match = re.search(regexp, response_body, re.MULTILINE)
-        if not match:
-            raise ValueError("unparseable response: %s" % response_body)
-        content = json.loads(match.group(1))
-        if not isinstance(content, str):
-            raise ValueError("unparseable response: %r" % content)
-        return content
+    def balance_modal_is_loaded(driver: WebDriver) -> bool:
+        modal = find_balance_modal(driver)
+        if not modal:
+            return False
+        if modal.is_displayed():
+            return True
+        return False
+
+    wait = WebDriverWait(driver, 10)
+    find_balance_button(driver).click()
+    wait.until(balance_modal_is_loaded)
+    balance_html: str = find_balance_modal(driver).get_property("innerHTML")
+    find_close_balance_modal_button(driver).click()
+    wait.until(lambda driver: not balance_modal_is_loaded(driver))
+    return balance_html
 
 
-class DWRServices(DWRMethod):
+def find_balance_button(driver: WebDriver) -> WebElement:
+    return driver.find_element_by_css_selector("#accountBallances a")
 
-    url = DWRMethod.create_url('call/plaincall/servicesRemoteService.getComponentsList.dwr')
 
-    def create_payload(self, **kwargs: str) -> str:
-        service_params = {
-            'callCount': '1',
-            'nextReverseAjaxIndex': '0',
-            'c0-scriptName': 'servicesRemoteService',
-            'c0-methodName': 'getComponentsList',
-            'c0-id': '0',
-            'c0-param0': 'string:PL24_PACKETS',
-            'batchId': '0',
-            'instanceId': '0',
-            'page': urllib.parse.quote_plus(self.page),
-            'scriptSessionId': self.session_id(kwargs["dwr_id"]),
-        }
-        return self.params_to_payload(service_params)
+def read_services(driver: WebDriver) -> str:
+    services_url = "https://24.play.pl/Play24/Services"
 
-    @staticmethod
-    def parse_response(response_body: str) -> str:
-        return DWRBalance.parse_response(response_body)
+    def services_page_is_loaded(driver: WebDriver) -> bool:
+        if driver.current_url != services_url:
+            return False
+        for loader in driver.find_elements_by_css_selector(".loader-content"):
+            if loader.is_displayed():
+                return False
+        return True
+
+    wait = WebDriverWait(driver, 10)
+    driver.get(services_url)
+    wait.until(services_page_is_loaded)
+    services_element = driver.find_element_by_css_selector(".container.services")
+    services_html: str = services_element.get_property("innerHTML")
+    return services_html
+
+
+def logout(driver: WebDriver) -> None:
+    wait = WebDriverWait(driver, 10)
+    logout_button = driver.find_element_by_css_selector("#ssoLogout")
+    logout_button.click()
+    wait.until(lambda driver: "Logowanie" in driver.title)
 
 
 def parse_balance_data(html_code: str) -> Mapping[str, BalanceValue]:
@@ -433,11 +330,14 @@ def main() -> None:
     config_dir = os.environ.get('XDG_CONFIG_HOME', os.path.expanduser('~/.config'))
     config = configparser.ConfigParser()
     config.read(os.path.join(config_dir, '24.play.pl.ini'))
-    scraper = Scraper(config.get('auth', 'login'), config.get('auth', 'password'))
-    scraper.log_in()
-    balance_data = scraper.get_balance()
-    services_data = scraper.list_services()
-    scraper.log_out()
+    driver = create_driver()
+    login(driver, config.get('auth', 'login'), config.get('auth', 'password'))
+    balance_html = read_balance(driver)
+    balance_data = parse_balance_data(balance_html)
+    services_html = read_services(driver)
+    services_data = parse_services_data(services_html)
+    logout(driver)
+    driver.quit()
     if config.has_option("cli", "output"):
         balance_data, services_data = filter_output(
             balance_data,

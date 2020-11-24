@@ -15,6 +15,17 @@ Copy the example configuration file `24.play.pl-example.ini` into
 
 Enter your login and password in the `~/.config/24.play.pl.ini` file.
 
+You'll also need a Firefox driver for [Selenium](https://www.selenium.dev/):
+
+	latest_release_url='https://github.com/mozilla/geckodriver/releases/latest'
+
+	download_xpath='string(//a[contains(@href, "linux64.tar.gz") and not(contains(@href, ".tar.gz.asc"))]/@href)'
+
+	download_url='https://github.com'$(curl -s -S -L "$latest_release_url" | xmllint --html --xpath "$download_xpath" - 2>/dev/null)
+
+	mkdir selenium-drivers
+	curl -s -S -L "$download_url" | tar zxp -C selenium-drivers
+
 ## Usage
 
 Run:
@@ -59,5 +70,4 @@ Output will be similar to:
 	roaming: False
 	roaming_EU_data_bundle_500MB: False
 
-The script is also importable. The `get_balance` and `list_services` methods
-return dicts with parsed data.
+The script is also importable.
