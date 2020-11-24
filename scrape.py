@@ -141,29 +141,21 @@ def parse_balance_data(html_code: str) -> Mapping[str, BalanceValue]:
             'outgoing_expiration_date',
         'Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 przychodz\u0105cych':
             'incoming_expiration_date',
-        'Promocyjny Internet': 'data_sale',
         'Liczba promocyjnych GB': 'free_data_GB',
         'Limit GB w roamingu UE': 'cheaper_roaming_EU_data_GB',
-        'Limit wydatk\xf3w na us\u0142ugi Premium': 'premium_services_limit_PLN',
-        'Suma do\u0142adowa\u0144 w tym miesi\u0105cu': 'credit_this_month_PLN',
         'Minuty na Ukrain\u0119': 'UA_minutes',
         'Minuty do wszystkich sieci': 'minutes_all_networks',
         'SMS-y do wszystkich': 'SMS_all_count',
-        '100 GB na lato': 'summer_data_100_GB',
     }
     value_parsers = {
         'balance_PLN': parse_balance,
         'outgoing_expiration_date': parse_date,
         'incoming_expiration_date': parse_date,
-        'data_sale': lambda x: x,
         'free_data_GB': parse_data_cap,
         'cheaper_roaming_EU_data_GB': parse_data_cap,
-        'premium_services_limit_PLN': parse_balance,
-        'credit_this_month_PLN': parse_balance,
         'UA_minutes': parse_hours_minutes,
         'minutes_all_networks': parse_hours_minutes,
         'SMS_all_count': parse_quantity,
-        'summer_data_100_GB': parse_data_cap,
     }
     return {
         label_map[label]: value_parsers[label_map[label]](value)

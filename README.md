@@ -38,17 +38,13 @@ Output will be similar to:
 	outgoing_expiration_date: YYYY-MM-DD
 	incoming_expiration_date: YYYY-MM-DD
 	minutes_all_networks: 0
-	credit_this_month_PLN: 0.0
 	SMS_all_count: 0
-	data_sale:
 	free_data_GB: 33.4
 	UA_minutes: 0
 	extend_7days: False
 	extend_31days: False
 	extend_365days: False
 	cheaper_roaming_EU_data_GB: 5.0
-	summer_data_100_GB: 0.0
-	premium_services_limit_PLN: 35.0
 	voice_bundle_1000min_UA: False
 	voice_bundle_1000min_UA_Viber_10GB: False
 	voice_29_BD: False
