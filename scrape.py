@@ -9,6 +9,7 @@ from typing import Callable, Iterable, Mapping, Tuple, Union, Match
 from lxml import html
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver import Firefox, FirefoxProfile
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.remote.webdriver import WebDriver, WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -17,6 +18,8 @@ BalanceValue = Union[str, float, bool, datetime.date]
 
 
 def create_driver() -> WebDriver:
+    firefox_options = Options()
+    firefox_options.add_argument("-headless")
     # disable navigator.webdriver in order to make driver automation
     # undetectable: https://stackoverflow.com/a/60626696
     profile = FirefoxProfile()
@@ -25,6 +28,7 @@ def create_driver() -> WebDriver:
     profile.update_preferences()
     driver = Firefox(
         executable_path="./selenium-drivers/geckodriver",
+        options=firefox_options,
         firefox_profile=profile,
     )
     return driver
