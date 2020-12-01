@@ -65,7 +65,7 @@ def login(driver: WebDriver, username: str, password: str) -> None:
                 return False
         return True
 
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 20)
     driver.get("https://24.play.pl/")
     wait.until(login_form_is_loaded)
     find_form_username_input(driver).send_keys(username)
