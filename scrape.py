@@ -112,7 +112,10 @@ def read_services(driver: WebDriver) -> str:
         if driver.current_url != services_url:
             return False
         for loader in driver.find_elements_by_css_selector(".loader-content"):
-            if loader.is_displayed():
+            try:
+                if loader.is_displayed():
+                    return False
+            except StaleElementReferenceException:
                 return False
         return True
 
