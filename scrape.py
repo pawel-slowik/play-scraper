@@ -354,11 +354,11 @@ def main() -> None:
     driver = create_driver()
     login(driver, config.get("auth", "login"), config.get("auth", "password"))
     balance_html = read_balance(driver)
-    balance_data = parse_balance_data(balance_html)
     services_html = read_services(driver)
-    services_data = parse_services_data(services_html)
     logout(driver)
     driver.quit()
+    balance_data = parse_balance_data(balance_html)
+    services_data = parse_services_data(services_html)
     if config.has_option("cli", "output"):
         balance_data, services_data = filter_output(
             balance_data,
