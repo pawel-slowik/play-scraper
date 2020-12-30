@@ -34,7 +34,7 @@ def create_driver() -> WebDriver:
     return driver
 
 
-def login(driver: WebDriver, username: str, password: str) -> None:
+def login(driver: WebDriver, username: str, password: str, timeout: int) -> None:
 
     def find_form_username_input(driver: WebDriver) -> WebElement:
         return driver.find_element_by_css_selector("input[name=IDToken1]")
@@ -65,7 +65,7 @@ def login(driver: WebDriver, username: str, password: str) -> None:
                 return False
         return True
 
-    wait = WebDriverWait(driver, 20)
+    wait = WebDriverWait(driver, timeout)
     driver.get("https://24.play.pl/")
     wait.until(login_form_is_loaded)
     find_form_username_input(driver).send_keys(username)
@@ -76,7 +76,7 @@ def login(driver: WebDriver, username: str, password: str) -> None:
     wait.until(user_profile_is_loaded)
 
 
-def read_balance(driver: WebDriver) -> str:
+def read_balance(driver: WebDriver, timeout: int) -> str:
 
     def find_close_balance_modal_button(driver: WebDriver) -> WebElement:
         return driver.find_element_by_css_selector("#fancybox-close")
@@ -92,7 +92,7 @@ def read_balance(driver: WebDriver) -> str:
             return True
         return False
 
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, timeout)
     find_balance_button(driver).click()
     wait.until(balance_modal_is_loaded)
     balance_html: str = find_balance_modal(driver).get_property("innerHTML")
@@ -105,7 +105,7 @@ def find_balance_button(driver: WebDriver) -> WebElement:
     return driver.find_element_by_css_selector("#accountBallances a")
 
 
-def read_services(driver: WebDriver) -> str:
+def read_services(driver: WebDriver, timeout: int) -> str:
     services_url = "https://24.play.pl/Play24/Services"
 
     def services_page_is_loaded(driver: WebDriver) -> bool:
@@ -119,7 +119,7 @@ def read_services(driver: WebDriver) -> str:
                 return False
         return True
 
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, timeout)
     driver.get(services_url)
     wait.until(services_page_is_loaded)
     services_element = driver.find_element_by_css_selector(".container.services")
@@ -127,8 +127,8 @@ def read_services(driver: WebDriver) -> str:
     return services_html
 
 
-def logout(driver: WebDriver) -> None:
-    wait = WebDriverWait(driver, 10)
+def logout(driver: WebDriver, timeout: int) -> None:
+    wait = WebDriverWait(driver, timeout)
     logout_button = driver.find_element_by_css_selector("#ssoLogout")
     logout_button.click()
     wait.until(lambda driver: "Logowanie" in driver.title)
@@ -351,11 +351,12 @@ def main() -> None:
     config_dir = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
     config = configparser.ConfigParser()
     config.read(os.path.join(config_dir, "24.play.pl.ini"))
+    timeout = config.getint("browser", "timeout", fallback=20)
     driver = create_driver()
-    login(driver, config.get("auth", "login"), config.get("auth", "password"))
-    balance_html = read_balance(driver)
-    services_html = read_services(driver)
-    logout(driver)
+    login(driver, config.get("auth", "login"), config.get("auth", "password"), timeout)
+    balance_html = read_balance(driver, timeout)
+    services_html = read_services(driver, timeout)
+    logout(driver, timeout)
     driver.quit()
     balance_data = parse_balance_data(balance_html)
     services_data = parse_services_data(services_html)
