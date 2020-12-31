@@ -40,7 +40,6 @@ Output will be similar to:
 	minutes_all_networks: 0
 	SMS_all_count: 0
 	free_data_GB: 33.4
-	UA_minutes: 0
 	extend_7days: False
 	extend_31days: False
 	extend_365days: False

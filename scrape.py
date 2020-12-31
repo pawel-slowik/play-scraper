@@ -169,11 +169,6 @@ def parse_balance_data(html_code: str) -> Mapping[str, BalanceValue]:
             parse_data_cap,
         ),
         (
-            "Minuty na Ukrain\u0119",
-            "UA_minutes",
-            parse_hours_minutes,
-        ),
-        (
             "Minuty do wszystkich sieci",
             "minutes_all_networks",
             parse_hours_minutes,
