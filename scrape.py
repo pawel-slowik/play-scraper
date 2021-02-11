@@ -248,17 +248,6 @@ def parse_data_cap(cap_str: str) -> float:
     return value
 
 
-def parse_hours_minutes(hours_minutes_str: str) -> int:
-    match = re.search("^(?P<hours>[0-9]+):(?P<minutes>[0-9]+) min", hours_minutes_str)
-    if not match:
-        raise ValueError("invalid hours:minutes value: %s" % hours_minutes_str)
-    hours = int(match.group("hours"))
-    minutes = int(match.group("minutes"))
-    if minutes > 59:
-        raise ValueError("invalid minutes value: %s" % hours_minutes_str)
-    return hours * 60 + minutes
-
-
 def parse_quantity(quantity_str: str) -> int:
     match = re.search(r"^(?P<int>[0-9]+) (?P<unit>szt\.)", quantity_str)
     if not match:
