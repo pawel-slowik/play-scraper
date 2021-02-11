@@ -169,11 +169,6 @@ def parse_balance_data(html_code: str) -> Mapping[str, BalanceValue]:
             parse_data_cap,
         ),
         (
-            "Minuty do wszystkich sieci",
-            "minutes_all_networks",
-            parse_hours_minutes,
-        ),
-        (
             "SMS-y do wszystkich",
             "SMS_all_count",
             parse_quantity,

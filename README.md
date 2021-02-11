@@ -37,7 +37,6 @@ Output will be similar to:
 	balance_PLN: 11.22
 	outgoing_expiration_date: YYYY-MM-DD
 	incoming_expiration_date: YYYY-MM-DD
-	minutes_all_networks: 0
 	SMS_all_count: 0
 	free_data_GB: 33.4
 	extend_7days: False
