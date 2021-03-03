@@ -17,9 +17,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 BalanceValue = Union[str, float, bool, datetime.date]
 
 
-def create_driver() -> WebDriver:
+def create_driver(debug: bool) -> WebDriver:
     firefox_options = Options()
-    firefox_options.add_argument("-headless")
+    if not debug:
+        firefox_options.add_argument("-headless")
     # disable navigator.webdriver in order to make driver automation
     # undetectable: https://stackoverflow.com/a/60626696
     profile = FirefoxProfile()
@@ -327,11 +328,22 @@ def filter_output(
 
 def main() -> None:
     import configparser
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-d", "--debug",
+        action="store_true",
+        help="debug mode - show the browser window instead of making it headless",
+    )
+    args = parser.parse_args()
+
     config_dir = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
     config = configparser.ConfigParser()
     config.read(os.path.join(config_dir, "24.play.pl.ini"))
+
     timeout = config.getint("browser", "timeout", fallback=20)
-    driver = create_driver()
+    driver = create_driver(args.debug)
     login(driver, config.get("auth", "login"), config.get("auth", "password"), timeout)
     balance_html = read_balance(driver, timeout)
     services_html = read_services(driver, timeout)
