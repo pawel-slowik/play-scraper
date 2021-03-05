@@ -338,6 +338,11 @@ def main() -> None:
         action="store_true",
         help="debug mode - show the browser window instead of making it headless",
     )
+    parser.add_argument(
+        "-k", "--keep",
+        action="store_true",
+        help="save downloaded HTML (usefull when testing changed content)",
+    )
     args = parser.parse_args()
 
     config_dir = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
@@ -349,6 +354,9 @@ def main() -> None:
     login(driver, config.get("auth", "login"), config.get("auth", "password"), timeout)
     balance_html = read_balance(driver, timeout)
     services_html = read_services(driver, timeout)
+    if args.keep:
+        open("balance.html", "w").write(balance_html)
+        open("services.html", "w").write(services_html)
     logout(driver, timeout)
     driver.quit()
     balance_data = parse_balance_data(balance_html)
