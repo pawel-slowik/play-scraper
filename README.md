@@ -51,6 +51,8 @@ Output will be similar to:
 	cheaper_BD: False
 	cheaper_IN: False
 	cheaper_NP: False
+	voice_bundle_1000min_UA_unlimited_PL_recurring: False
+	voice_bundle_1000min_UA_unlimited_PL: False
 	no_data_limit_day: False
 	no_data_limit_month_recurring: False
 	no_data_limit_month: True
