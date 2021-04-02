@@ -217,10 +217,6 @@ def parse_services_data(html_code: str) -> Mapping[str, bool]:
         ("Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 31 dni", False): "extend_31days",
         ("Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 365 dni", False): "extend_365days",
     }
-    value_map = {
-        "": False,
-        "W\u0142\u0105czony": True,
-    }
     parsed = parse_flagged_table(
         html_code,
         row_xpath,
@@ -228,7 +224,7 @@ def parse_services_data(html_code: str) -> Mapping[str, bool]:
         value_xpath,
         flag_xpath
     )
-    return {label_map[label]: value_map[value] for label, value in parsed.items()}
+    return {label_map[label]: parse_boolean_state(value) for label, value in parsed.items()}
 
 
 def parse_balance(balance_str: str) -> float:
@@ -264,6 +260,14 @@ def parse_float(re_match: Match) -> float:
     if re_match.group("fract") is not None:
         value += float("." + re_match.group("fract"))
     return value
+
+
+def parse_boolean_state(state: str) -> bool:
+    value_map = {
+        "": False,
+        "W\u0142\u0105czony": True,
+    }
+    return value_map[state]
 
 
 def parse_table(
