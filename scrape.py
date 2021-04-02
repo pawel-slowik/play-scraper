@@ -18,6 +18,7 @@ from value_parsers import parse_boolean_state
 
 BalanceValue = Union[str, float, bool, datetime.date]
 BalanceParser = Tuple[str, str, Callable]
+ServiceParser = Tuple[Tuple[str, bool], str, Callable]
 
 
 BALANCE_PARSERS: Iterable[BalanceParser] = [
@@ -50,6 +51,145 @@ BALANCE_PARSERS: Iterable[BalanceParser] = [
         "SMS-y do wszystkich",
         "SMS_all_count",
         parse_quantity,
+    ),
+]
+
+
+SERVICE_PARSERS: Iterable[ServiceParser] = [
+    (
+        ("Noce bez limitu", False),
+        "no_data_limit_nights",
+        parse_boolean_state,
+    ),
+    (
+        ("Noce bez limitu", True),
+        "no_data_limit_nights_recurring",
+        parse_boolean_state,
+    ),
+    (
+        ("Dzie\u0144 bez limitu w Play Internet na Kart\u0119", False),
+        "no_data_limit_day",
+        parse_boolean_state,
+    ),
+    (
+        ("Tydzie\u0144 bez limitu GB", False),
+        "no_data_limit_week",
+        parse_boolean_state,
+    ),
+    (
+        ("Miesi\u0105c bez limitu GB", False),
+        "no_data_limit_month",
+        parse_boolean_state,
+    ),
+    (
+        ("Miesi\u0105c bez limitu GB", True),
+        "no_data_limit_month_recurring",
+        parse_boolean_state,
+    ),
+    (
+        ("Ta\u0144sze po\u0142\u0105czenia i smsy na Ukrain\u0119", True),
+        "cheaper_UA",
+        parse_boolean_state,
+    ),
+    (
+        ("1000 minut na Ukrain\u0119", False),
+        "voice_bundle_1000min_UA",
+        parse_boolean_state,
+    ),
+    (
+        ("1000 minut na Ukrain\u0119 + 10 GB na Viber", False),
+        "voice_bundle_1000min_UA_Viber_10GB",
+        parse_boolean_state,
+    ),
+    (
+        ("Pakiet 1000 minut na Ukrain\u0119 i...", False),
+        "voice_bundle_1000min_UA_unlimited_PL",
+        parse_boolean_state,
+    ),
+    (
+        ("Pakiet 1000 minut na Ukrain\u0119 i...", True),
+        "voice_bundle_1000min_UA_unlimited_PL_recurring",
+        parse_boolean_state,
+    ),
+    (
+        ("Roaming zagraniczny", False),
+        "roaming",
+        parse_boolean_state,
+    ),
+    (
+        ("500 MB do wykorzystania w UE", False),
+        "roaming_EU_data_bundle_500MB",
+        parse_boolean_state,
+    ),
+    (
+        ("1 GB do wykorzystania w UE", False),
+        "roaming_EU_data_bundle_1GB",
+        parse_boolean_state,
+    ),
+    (
+        ("3 GB do wykorzystania w UE", False),
+        "roaming_EU_data_bundle_3GB",
+        parse_boolean_state,
+    ),
+    (
+        ("Pakiet Internet Emiraty 150 MB", False),
+        "roaming_AE_data_bundle_150MB",
+        parse_boolean_state,
+    ),
+    (
+        ("Pakiet Internet \u015awiat 1 GB", False),
+        "roaming_data_bundle_1GB",
+        parse_boolean_state,
+    ),
+    (
+        ("Pakiet Internet \u015awiat 300 MB", False),
+        "roaming_data_bundle_300MB",
+        parse_boolean_state,
+    ),
+    (
+        ("29 gr za minut\u0119 do Bangladeszu", False),
+        "voice_29_BD",
+        parse_boolean_state,
+    ),
+    (
+        ("29 gr za minut\u0119 do Indii", False),
+        "voice_29_IN",
+        parse_boolean_state,
+    ),
+    (
+        ("70 gr za minut\u0119 do Nepalu", False),
+        "voice_29_NP",
+        parse_boolean_state,
+    ),
+    (
+        ("Taniej do Bangladeszu", False),
+        "cheaper_BD",
+        parse_boolean_state,
+    ),
+    (
+        ("Taniej do Indii", False),
+        "cheaper_IN",
+        parse_boolean_state,
+    ),
+    (
+        ("Taniej do Nepalu", False),
+        "cheaper_NP",
+        parse_boolean_state,
+    ),
+    (
+        ("Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 7 dni", False),
+        "extend_7days",
+        parse_boolean_state,
+    ),
+    (
+        ("Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 31 dni", False),
+        "extend_31days",
+        parse_boolean_state,
+    ),
+    (
+        ("Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 365 dni", False),
+        "extend_365days",
+        parse_boolean_state,
     ),
 ]
 
@@ -191,37 +331,6 @@ def parse_services_data(html_code: str) -> Mapping[str, bool]:
     label_xpath = ".//p[contains(@class, 'tile-title')]"
     value_xpath = ".//div[contains(@class, 'active-label')]"
     flag_xpath = ".//div[contains(@class, 'tile-actions')]/div[contains(., 'miesi\u0119cznie')]"
-    label_map = {
-        ("Noce bez limitu", False): "no_data_limit_nights",
-        ("Noce bez limitu", True): "no_data_limit_nights_recurring",
-        ("Dzie\u0144 bez limitu w Play Internet na Kart\u0119", False): "no_data_limit_day",
-        ("Tydzie\u0144 bez limitu GB", False): "no_data_limit_week",
-        ("Miesi\u0105c bez limitu GB", False): "no_data_limit_month",
-        ("Miesi\u0105c bez limitu GB", True): "no_data_limit_month_recurring",
-        ("Ta\u0144sze po\u0142\u0105czenia i smsy na Ukrain\u0119", True): "cheaper_UA",
-        ("1000 minut na Ukrain\u0119", False): "voice_bundle_1000min_UA",
-        ("1000 minut na Ukrain\u0119 + 10 GB na Viber", False):
-            "voice_bundle_1000min_UA_Viber_10GB",
-        ("Pakiet 1000 minut na Ukrain\u0119 i...", False): "voice_bundle_1000min_UA_unlimited_PL",
-        ("Pakiet 1000 minut na Ukrain\u0119 i...", True):
-            "voice_bundle_1000min_UA_unlimited_PL_recurring",
-        ("Roaming zagraniczny", False): "roaming",
-        ("500 MB do wykorzystania w UE", False): "roaming_EU_data_bundle_500MB",
-        ("1 GB do wykorzystania w UE", False): "roaming_EU_data_bundle_1GB",
-        ("3 GB do wykorzystania w UE", False): "roaming_EU_data_bundle_3GB",
-        ("Pakiet Internet Emiraty 150 MB", False): "roaming_AE_data_bundle_150MB",
-        ("Pakiet Internet \u015awiat 1 GB", False): "roaming_data_bundle_1GB",
-        ("Pakiet Internet \u015awiat 300 MB", False): "roaming_data_bundle_300MB",
-        ("29 gr za minut\u0119 do Bangladeszu", False): "voice_29_BD",
-        ("29 gr za minut\u0119 do Indii", False): "voice_29_IN",
-        ("70 gr za minut\u0119 do Nepalu", False): "voice_29_NP",
-        ("Taniej do Bangladeszu", False): "cheaper_BD",
-        ("Taniej do Indii", False): "cheaper_IN",
-        ("Taniej do Nepalu", False): "cheaper_NP",
-        ("Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 7 dni", False): "extend_7days",
-        ("Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 31 dni", False): "extend_31days",
-        ("Przed\u0142u\u017cenie wa\u017cno\u015bci konta o 365 dni", False): "extend_365days",
-    }
     parsed = parse_flagged_table(
         html_code,
         row_xpath,
@@ -229,7 +338,10 @@ def parse_services_data(html_code: str) -> Mapping[str, bool]:
         value_xpath,
         flag_xpath
     )
-    return {label_map[label]: parse_boolean_state(value) for label, value in parsed.items()}
+    return {
+        key: parser(parsed[label])
+        for label, key, parser in SERVICE_PARSERS
+    }
 
 
 def parse_table(
