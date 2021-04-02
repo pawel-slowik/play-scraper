@@ -17,6 +17,41 @@ from value_parsers import parse_boolean_state
 
 
 BalanceValue = Union[str, float, bool, datetime.date]
+BalanceParser = Tuple[str, str, Callable]
+
+
+BALANCE_PARSERS: Iterable[BalanceParser] = [
+    (
+        "Konto",
+        "balance_PLN",
+        parse_balance,
+    ),
+    (
+        "Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 wychodz\u0105cych",
+        "outgoing_expiration_date",
+        parse_date,
+    ),
+    (
+        "Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 przychodz\u0105cych",
+        "incoming_expiration_date",
+        parse_date,
+    ),
+    (
+        "Liczba promocyjnych GB",
+        "free_data_GB",
+        parse_data_cap,
+    ),
+    (
+        "Limit GB w roamingu UE",
+        "cheaper_roaming_EU_data_GB",
+        parse_data_cap,
+    ),
+    (
+        "SMS-y do wszystkich",
+        "SMS_all_count",
+        parse_quantity,
+    ),
+]
 
 
 def create_driver(debug: bool) -> WebDriver:
@@ -145,41 +180,9 @@ def parse_balance_data(html_code: str) -> Mapping[str, BalanceValue]:
     label_xpath = "./div[contains(@class, 'level-left')]"
     value_xpath = "./div[contains(@class, 'level-item')]"
     parsed = parse_table(html_code, row_xpath, label_xpath, value_xpath, False)
-    parsers: Iterable[Tuple[str, str, Callable]] = [
-        (
-            "Konto",
-            "balance_PLN",
-            parse_balance,
-        ),
-        (
-            "Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 wychodz\u0105cych",
-            "outgoing_expiration_date",
-            parse_date,
-        ),
-        (
-            "Data wa\u017cno\u015bci po\u0142\u0105cze\u0144 przychodz\u0105cych",
-            "incoming_expiration_date",
-            parse_date,
-        ),
-        (
-            "Liczba promocyjnych GB",
-            "free_data_GB",
-            parse_data_cap,
-        ),
-        (
-            "Limit GB w roamingu UE",
-            "cheaper_roaming_EU_data_GB",
-            parse_data_cap,
-        ),
-        (
-            "SMS-y do wszystkich",
-            "SMS_all_count",
-            parse_quantity,
-        ),
-    ]
     return {
         key: parser(parsed[label])
-        for label, key, parser in parsers
+        for label, key, parser in BALANCE_PARSERS
     }
 
 
