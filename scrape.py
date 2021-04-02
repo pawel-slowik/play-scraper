@@ -259,30 +259,6 @@ def first_line(string: str) -> str:
     return "" if string == "" else string.splitlines()[0]
 
 
-def filter_output(
-        balance_data: Mapping[str, BalanceValue],
-        services_data: Mapping[str, bool],
-        keys: Iterable[str]
-) -> Tuple[
-        Mapping[str, BalanceValue],
-        Mapping[str, bool]
-]:
-    keys = tuple(keys)
-    if not keys:
-        return balance_data, services_data
-    output_balance_data = {}
-    output_services_data = {}
-    for key in keys:
-        if key in balance_data:
-            output_balance_data[key] = balance_data[key]
-            continue
-        if key in services_data:
-            output_services_data[key] = services_data[key]
-            continue
-        raise ValueError("invalid key: %s" % key)
-    return output_balance_data, output_services_data
-
-
 def main() -> None:
     import configparser
     import argparse
@@ -316,12 +292,6 @@ def main() -> None:
     driver.quit()
     balance_data = parse_balance_data(balance_html)
     services_data = parse_services_data(services_html)
-    if config.has_option("cli", "output"):
-        balance_data, services_data = filter_output(
-            balance_data,
-            services_data,
-            config.get("cli", "output").split()
-        )
     for key, value in balance_data.items():
         print("%s: %s" % (key, value))
     for key, value in services_data.items():
