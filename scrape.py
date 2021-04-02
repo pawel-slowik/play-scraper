@@ -198,7 +198,8 @@ def parse_services_data(html_code: str) -> Mapping[str, bool]:
         ("1000 minut na Ukrain\u0119 + 10 GB na Viber", False):
             "voice_bundle_1000min_UA_Viber_10GB",
         ("Pakiet 1000 minut na Ukrain\u0119 i...", False): "voice_bundle_1000min_UA_unlimited_PL",
-        ("Pakiet 1000 minut na Ukrain\u0119 i...", True): "voice_bundle_1000min_UA_unlimited_PL_recurring",
+        ("Pakiet 1000 minut na Ukrain\u0119 i...", True):
+            "voice_bundle_1000min_UA_unlimited_PL_recurring",
         ("Roaming zagraniczny", False): "roaming",
         ("500 MB do wykorzystania w UE", False): "roaming_EU_data_bundle_500MB",
         ("1 GB do wykorzystania w UE", False): "roaming_EU_data_bundle_1GB",
