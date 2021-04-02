@@ -179,7 +179,7 @@ def parse_balance_data(html_code: str) -> Mapping[str, BalanceValue]:
     )
     label_xpath = "./div[contains(@class, 'level-left')]"
     value_xpath = "./div[contains(@class, 'level-item')]"
-    parsed = parse_table(html_code, row_xpath, label_xpath, value_xpath, False)
+    parsed = parse_table(html_code, row_xpath, label_xpath, value_xpath)
     return {
         key: parser(parsed[label])
         for label, key, parser in BALANCE_PARSERS
@@ -237,11 +237,10 @@ def parse_table(
         row_xpath: str,
         label_xpath: str,
         value_xpath: str,
-        allow_empty_value: bool
 ) -> Mapping[str, str]:
     return {
         xpath_text(row_node, label_xpath, False):
-        first_line(xpath_text(row_node, value_xpath, allow_empty_value)).strip()
+        first_line(xpath_text(row_node, value_xpath, False)).strip()
         for row_node in html.fromstring(html_code).xpath(row_xpath)
     }
 
