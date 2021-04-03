@@ -2,7 +2,7 @@
 
 import os
 import datetime
-from typing import Callable, Iterable, Mapping, Tuple, Union
+from typing import TypeVar, Callable, Iterable, Mapping, Tuple, Union
 
 from lxml import html
 
@@ -14,6 +14,7 @@ from value_parsers import parse_boolean_state
 BalanceValue = Union[str, float, bool, datetime.date]
 BalanceParser = Tuple[str, str, Callable]
 ServiceParser = Tuple[Tuple[str, bool], str, Callable]
+ParsedData = TypeVar("ParsedData", Mapping[str, BalanceValue], Mapping[str, bool])
 
 
 BALANCE_PARSERS: Iterable[BalanceParser] = [
@@ -199,7 +200,7 @@ def parse_balance_data(html_code: str) -> Mapping[str, BalanceValue]:
     parsed = parse_table(html_code, row_xpath, label_xpath, value_xpath)
     return {
         key: parser(parsed[label])
-        for label, key, parser in BALANCE_PARSERS
+        for label, key, parser in BALANCE_PARSERS if label in parsed
     }
 
 
@@ -217,7 +218,7 @@ def parse_services_data(html_code: str) -> Mapping[str, bool]:
     )
     return {
         key: parser(parsed[label])
-        for label, key, parser in SERVICE_PARSERS
+        for label, key, parser in SERVICE_PARSERS if label in parsed
     }
 
 
@@ -259,6 +260,25 @@ def first_line(string: str) -> str:
     return "" if string == "" else string.splitlines()[0]
 
 
+def config_wanted_keys(
+        config_value: str,
+        parsers: Union[Iterable[BalanceParser], Iterable[ServiceParser]],
+) -> Iterable[str]:
+    if config_value == "*":
+        return [parser[1] for parser in parsers]
+    return config_value.split()
+
+
+def check_and_filter_keys(
+        data: ParsedData,
+        wanted_keys: Iterable[str],
+) -> ParsedData:
+    filtered_data = {}
+    for key in wanted_keys:
+        filtered_data[key] = data[key]
+    return filtered_data
+
+
 def main() -> None:
     import configparser
     import argparse
@@ -292,6 +312,18 @@ def main() -> None:
     driver.quit()
     balance_data = parse_balance_data(balance_html)
     services_data = parse_services_data(services_html)
+
+    if config.has_option("balance", "wanted"):
+        balance_data = check_and_filter_keys(
+            balance_data,
+            config_wanted_keys(config.get("balance", "wanted"), BALANCE_PARSERS)
+        )
+    if config.has_option("services", "wanted"):
+        services_data = check_and_filter_keys(
+            services_data,
+            config_wanted_keys(config.get("services", "wanted"), SERVICE_PARSERS),
+        )
+
     for key, value in balance_data.items():
         print("%s: %s" % (key, value))
     for key, value in services_data.items():
