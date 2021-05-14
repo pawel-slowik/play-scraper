@@ -27,20 +27,28 @@ def create_driver(debug: bool) -> WebDriver:
 
 def login(driver: WebDriver, username: str, password: str, timeout: int) -> None:
 
-    def find_form_username_input(driver: WebDriver) -> WebElement:
-        return driver.find_element_by_css_selector("input[name=IDToken1]")
+    def find_username_input(driver: WebDriver) -> WebElement:
+        return driver.find_element_by_css_selector("input[name='msisdn']")
 
-    def find_form_password_input(driver: WebDriver) -> WebElement:
-        return driver.find_element_by_css_selector("input[name=IDToken2]")
+    def find_username_submit_button(driver: WebDriver) -> WebElement:
+        return driver.find_element_by_css_selector("button[name='begin']")
 
-    def find_form_submit_button(driver: WebDriver) -> WebElement:
-        return driver.find_element_by_css_selector("button[name='Login.Submit']")
+    def find_password_input(driver: WebDriver) -> WebElement:
+        return driver.find_element_by_css_selector("input[name='password']")
 
-    def login_form_is_loaded(driver: WebDriver) -> bool:
+    def find_password_submit_button(driver: WebDriver) -> WebElement:
+        return driver.find_element_by_css_selector("button[name='openam-pass-submit']")
+
+    def username_form_is_loaded(driver: WebDriver) -> bool:
         return bool(
-            find_form_username_input(driver)
-            and find_form_password_input(driver)
-            and find_form_submit_button(driver)
+            find_username_input(driver)
+            and find_username_submit_button(driver)
+        )
+
+    def password_form_is_loaded(driver: WebDriver) -> bool:
+        return bool(
+            find_password_input(driver)
+            and find_password_submit_button(driver)
         )
 
     def user_profile_is_loaded(driver: WebDriver) -> bool:
@@ -58,12 +66,17 @@ def login(driver: WebDriver, username: str, password: str, timeout: int) -> None
 
     wait = WebDriverWait(driver, timeout)
     driver.get("https://24.play.pl/")
-    wait.until(login_form_is_loaded)
-    find_form_username_input(driver).send_keys(username)
+
+    wait.until(username_form_is_loaded)
+    find_username_input(driver).send_keys(username)
     sleep(2)
-    find_form_password_input(driver).send_keys(password)
+    find_username_submit_button(driver).click()
+
+    wait.until(password_form_is_loaded)
+    find_password_input(driver).send_keys(password)
     sleep(2)
-    find_form_submit_button(driver).click()
+    find_password_submit_button(driver).click()
+
     wait.until(user_profile_is_loaded)
 
 
