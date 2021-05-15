@@ -133,6 +133,6 @@ def read_services(driver: WebDriver, timeout: int) -> str:
 
 def logout(driver: WebDriver, timeout: int) -> None:
     wait = WebDriverWait(driver, timeout)
-    logout_button = driver.find_element_by_css_selector("#ssoLogout")
+    logout_button = driver.find_element_by_xpath("//a[.='Wyloguj']")
     logout_button.click()
     wait.until(lambda driver: "Logowanie" in driver.title)
