@@ -78,6 +78,17 @@ def login(driver: WebDriver, username: str, password: str, timeout: int) -> None
     find_password_submit_button(driver).click()
 
     wait.until(user_profile_is_loaded)
+    dismiss_news_modal(driver, timeout)
+
+
+def dismiss_news_modal(driver: WebDriver, timeout: int) -> None:
+
+    def find_dismiss_news_button(driver: WebDriver) -> WebElement:
+        return driver.find_element_by_css_selector("div#newSsoInfoModal button.fancybox-close")
+
+    wait = WebDriverWait(driver, timeout)
+    wait.until(find_dismiss_news_button)
+    find_dismiss_news_button(driver).click()
 
 
 def read_balance(driver: WebDriver, timeout: int) -> str:
