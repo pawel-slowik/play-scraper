@@ -1,6 +1,6 @@
 from time import sleep
 
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
 from selenium.webdriver import Firefox, FirefoxProfile
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.remote.webdriver import WebDriver, WebElement
@@ -78,7 +78,10 @@ def login(driver: WebDriver, username: str, password: str, timeout: int) -> None
     find_password_submit_button(driver).click()
 
     wait.until(user_profile_is_loaded)
-    dismiss_news_modal(driver, timeout)
+    try:
+        dismiss_news_modal(driver, timeout)
+    except TimeoutException:
+        pass
 
 
 def dismiss_news_modal(driver: WebDriver, timeout: int) -> None:
