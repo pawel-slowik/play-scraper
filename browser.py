@@ -87,7 +87,7 @@ def login(driver: WebDriver, username: str, password: str, timeout: int) -> None
 def dismiss_news_modal(driver: WebDriver, timeout: int) -> None:
 
     def find_dismiss_news_button(driver: WebDriver) -> WebElement:
-        return driver.find_element_by_css_selector("div#newSsoInfoModal button.fancybox-close")
+        return driver.find_element_by_css_selector("div#fancybox-content button.fancybox-close")
 
     wait = WebDriverWait(driver, timeout)
     wait.until(find_dismiss_news_button)
