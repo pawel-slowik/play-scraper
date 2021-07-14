@@ -1,3 +1,6 @@
+**Note: the script does not work anymore due to SMS token authentication
+introduced by the mobile carrier.**
+
 This is a [web scraper](https://en.wikipedia.org/wiki/Web_scraping) for your
 profile at the [Play](https://en.wikipedia.org/wiki/Play_%28telecommunications%29)
 mobile network operator site: [https://24.play.pl/](https://24.play.pl/).
